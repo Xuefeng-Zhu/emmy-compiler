@@ -145,7 +145,7 @@ class MatmulEmitter(StructuredEmitter):
         require(type(dynamic_bytes) is int and dynamic_bytes >= 0, 'invalid dynamic shared-memory size')
         if dynamic_bytes:
             require(dynamic_bytes == cursor, 'dynamic shared-memory size does not match packed Smem declarations')
-            self.extra_declarations.append(f'    .extern .shared .align {pool_alignment} .b8 shared_pool[];')
+            self.module_declarations.append(f'.extern .shared .align {pool_alignment} .b8 shared_pool[];')
             pool = self.reg('r')
             self.put(f'mov.u32 {pool}, shared_pool;')
         else:

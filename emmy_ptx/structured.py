@@ -70,6 +70,7 @@ class StructuredEmitter(Emitter):
         self.mutable = set()
         self.accum_context = {}
         self.extra_declarations = []
+        self.module_declarations = []
         self.label_count = 0
         self.symbol_count = 0
 
@@ -602,5 +603,6 @@ class StructuredEmitter(Emitter):
                               for kind, dtype in [('p', 'pred'), ('r', 'b32'), ('rd', 'b64'), ('f', 'f32')]
                               if self.counts[kind])
         declarations = '\n'.join(self.extra_declarations)
-        return (f'.version 8.0\n.target sm_89\n.address_size 64\n\n.visible .entry {k.name}(\n{parameters}\n)\n'
+        module_prefix = '\n'.join(self.module_declarations) + '\n\n' if self.module_declarations else ''
+        return (f'.version 8.0\n.target sm_89\n.address_size 64\n\n{module_prefix}.visible .entry {k.name}(\n{parameters}\n)\n'
                 f'.reqntid {k.block[0]}, 1, 1\n{{\n{registers}\n{declarations}\n' + '\n'.join(self.lines) + '\n}\n')

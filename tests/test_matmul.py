@@ -65,6 +65,8 @@ class MatmulTests(unittest.TestCase):
         raw, meta = fixture('m01_matmul_512')
         ptx = emit(raw, meta)
         self.assertIn('.extern .shared .align 16 .b8 shared_pool[];', ptx)
+        self.assertLess(ptx.index('.extern .shared'), ptx.index('.visible .entry'))
+        self.assertNotIn('.extern', ptx.split('{', 1)[1])
         self.assertEqual(ptx.count('.shared '), 1)
         self.assertIn(', 24576;', ptx)
         self.assertEqual(meta['kernels'][0]['smem_bytes'], 73728)
