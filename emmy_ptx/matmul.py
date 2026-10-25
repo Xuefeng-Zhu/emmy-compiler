@@ -63,6 +63,9 @@ def evaluate_index(expression, environment):
 class MatmulEmitter(StructuredEmitter):
     """Extend structured f32 loops with shared storage, async copies and atomics."""
 
+    def conditional(self, statement):
+        require(False, 'shared-memory conditionals require a CTA-uniform synchronization proof')
+
     def __init__(self, kernel):
         super().__init__(kernel)
         # The base may reference Kernel.dimensions directly. Never mutate it.

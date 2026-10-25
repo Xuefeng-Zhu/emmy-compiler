@@ -160,7 +160,7 @@ class CompilerTests(unittest.TestCase):
             compile_file(self.path)
 
     def test_unknown_arithmetic_fails_clearly(self):
-        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('divide')")
+        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('log')")
         with self.assertRaisesRegex(CompileError, r"(?i)(divide|assign|unsupported)"):
             compile_file(self.path)
 
@@ -232,7 +232,7 @@ class CompilerTests(unittest.TestCase):
                 self.assertTrue(result.stderr.strip())
 
     def test_cli_failure_has_no_partial_ptx_stdout(self):
-        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('divide')")
+        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('log')")
         result = self.run_cli(self.path)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")

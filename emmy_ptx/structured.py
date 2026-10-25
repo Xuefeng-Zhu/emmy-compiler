@@ -14,7 +14,7 @@ from emmy.compiler.ir.axis import Axis
 from emmy.compiler.ir.elementwise import ElementwiseImpl
 from emmy.compiler.ir.expr import BinaryExpr, Literal, TernaryExpr, Var
 from emmy.compiler.ir.kernel.ir import Tile
-from emmy.compiler.ir.stmt.blocks import Loop, StridedLoop
+from emmy.compiler.ir.stmt.blocks import Cond, Loop, StridedLoop
 from emmy.compiler.ir.stmt.leaves import Accum, Assign, Init, Let, Load, Write
 
 from .errors import CompileError
@@ -73,6 +73,7 @@ class StructuredEmitter(Emitter):
         self.module_declarations = []
         self.label_count = 0
         self.symbol_count = 0
+        self.integer_constraints = []
 
     def bind(self, name, value, shadow_state=False):
         valid_name(name)
@@ -135,6 +136,9 @@ class StructuredEmitter(Emitter):
                 lo, hi = self.symbol_bounds[key]
                 low += coefficient * (lo if coefficient >= 0 else hi)
                 high += coefficient * (hi if coefficient >= 0 else lo)
+            for guarded_terms, lower, upper in self.integer_constraints:
+                if terms == guarded_terms:
+                    low, high = max(low, lower + constant), min(high, upper + constant)
         require(-(2**31) <= low <= high < 2**31, 'integer arithmetic may overflow signed 32-bit range')
         result = self.reg('r')
         instruction = {'+': 'add', '-': 'sub', '*': 'mul.lo', '/': 'div', '//': 'div', '%': 'rem'}[op]
@@ -142,6 +146,12 @@ class StructuredEmitter(Emitter):
         return IntValue(result, low, high, terms, constant)
 
     def predicate(self, expression):
+        if isinstance(expression, BinaryExpr) and expression.op in ('&&', '||'):
+            left, right = self.predicate(expression.left), self.predicate(expression.right)
+            result = self.reg('p')
+            operation = 'and' if expression.op == '&&' else 'or'
+            self.put(f'{operation}.pred {result}, {left}, {right};')
+            return result
         require(isinstance(expression, BinaryExpr) and expression.op in ('<', '<=', '>', '>=', '==', '!='),
                 'only integer comparison predicates are supported')
         left, right = self.index(expression.left), self.index(expression.right)
@@ -157,22 +167,22 @@ class StructuredEmitter(Emitter):
         values. A condition we cannot prove leaves the interval unchanged.
         """
         bounds = dict(self.symbol_bounds)
-        if expression.op not in ('<', '<=', '>', '>='):
+        if expression.op not in ('<', '<=', '>', '>=', '==', '!='):
             return bounds
         left, right = self.index(expression.left), self.index(expression.right)
         op = expression.op
         if left.lower == left.upper and right.terms is not None:
             left, right = right, left
-            op = {'<': '>', '<=': '>=', '>': '<', '>=': '<='}[op]
+            op = {'<': '>', '<=': '>=', '>': '<', '>=': '<=', '==': '==', '!=': '!='}[op]
         if left.terms is None or len(left.terms) != 1 or right.lower != right.upper:
             return bounds
         key, coefficient = left.terms[0]
         limit = right.lower - left.constant
         if coefficient < 0:
             coefficient, limit = -coefficient, -limit
-            op = {'<': '>', '<=': '>=', '>': '<', '>=': '<='}[op]
+            op = {'<': '>', '<=': '>=', '>': '<', '>=': '<=', '==': '==', '!=': '!='}[op]
         if not truth:
-            op = {'<': '>=', '<=': '>', '>': '<=', '>=': '<'}[op]
+            op = {'<': '>=', '<=': '>', '>': '<=', '>=': '<', '==': '!=', '!=': '=='}[op]
         low, high = bounds[key]
         if op == '<':
             high = min(high, (limit - 1) // coefficient)
@@ -180,8 +190,16 @@ class StructuredEmitter(Emitter):
             high = min(high, limit // coefficient)
         elif op == '>':
             low = max(low, -(-(limit + 1) // coefficient))
-        else:
+        elif op == '>=':
             low = max(low, -(-limit // coefficient))
+        elif op == '==':
+            if limit % coefficient:
+                return None
+            low, high = max(low, limit // coefficient), min(high, limit // coefficient)
+        elif limit % coefficient == 0:
+            excluded = limit // coefficient
+            if low == excluded: low += 1
+            if high == excluded: high -= 1
         origin, step = self.symbol_steps[key]
         low = origin + (-(-(low - origin) // step)) * step
         high = origin + ((high - origin) // step) * step
@@ -201,6 +219,9 @@ class StructuredEmitter(Emitter):
                     lo, hi = self.symbol_bounds[key]
                     low += coefficient * (lo if coefficient >= 0 else hi)
                     high += coefficient * (hi if coefficient >= 0 else lo)
+                for terms, lower, upper in self.integer_constraints:
+                    if value.terms == terms:
+                        low, high = max(low, lower + value.constant), min(high, upper + value.constant)
                 return IntValue(value.operand, low, high, value.terms, value.constant)
             return value
         if isinstance(expression, Literal):
@@ -253,29 +274,6 @@ class StructuredEmitter(Emitter):
         self.put(f'add.u64 {address}, {self.pointers[buffer]}, {byte_offset};')
         return address
 
-    def emit_math(self, operation, operands, dst=None):
-        arity = {'add': 2, 'subtract': 2, 'multiply': 2, 'divide': 2,
-                 'maximum': 2, 'minimum': 2, 'reciprocal': 1,
-                 'sqrt': 1, 'exp': 1, 'copy': 1, 'relu': 1}
-        require(operation in arity, f'unsupported elementwise operation: {operation}')
-        require(len(operands) == arity[operation], f'{operation}: wrong operand count')
-        dst = dst or self.reg('f')
-        if operation == 'exp':
-            scaled = self.reg('f')
-            # Natural exp via exp2; approximation remains subject to GPU validation.
-            self.put(f'mul.rn.f32 {scaled}, {operands[0]}, 0f3fb8aa3b;')
-            self.put(f'ex2.approx.f32 {dst}, {scaled};')
-        elif operation == 'reciprocal':
-            self.put(f'div.rn.f32 {dst}, 0f3f800000, {operands[0]};')
-        elif operation == 'relu':
-            self.put(f'max.NaN.f32 {dst}, {operands[0]}, 0f00000000;')
-        else:
-            instruction = {'add': 'add.rn', 'subtract': 'sub.rn', 'multiply': 'mul.rn',
-                           'divide': 'div.rn', 'maximum': 'max.NaN', 'minimum': 'min.NaN',
-                           'sqrt': 'sqrt.rn', 'copy': 'mov'}[operation]
-            self.put(f'{instruction}.f32 {dst}, ' + ', '.join(operands) + ';')
-        return dst
-
     def emit_assign(self, statement, update=False):
         require(isinstance(statement.op, ElementwiseImpl), 'Assign operator must be an ElementwiseImpl')
         require(f32(statement.dtype, inherited=True), 'Assign: only f32 supported')
@@ -317,6 +315,77 @@ class StructuredEmitter(Emitter):
         require(statement.base is None or (isinstance(statement.base, str) and bool(statement.base)),
                 'Accum base must be an SSA name or None')
 
+    def loop_accumulators(self, body, axis):
+        """Conditionals stay in the enclosing loop's accumulator lifetime."""
+        accumulators = {}
+        for child in body:
+            if isinstance(child, Accum):
+                self.check_accumulator(child, axis)
+                require(child.name not in accumulators or accumulators[child.name].op.name == child.op.name,
+                        'one accumulator cannot mix reduction operators')
+                accumulators[child.name] = child
+            elif isinstance(child, Cond):
+                for branch in (child.body, child.else_body):
+                    for name, accumulator in self.loop_accumulators(branch, axis).items():
+                        require(name not in accumulators or accumulators[name].op.name == accumulator.op.name,
+                                'one accumulator cannot mix reduction operators')
+                        accumulators[name] = accumulator
+        return accumulators
+
+    def refine_guard(self, expression, truth):
+        if expression.op in ('&&', '||'):
+            # A true conjunction (or false disjunction) proves both clauses.
+            # The other path is a union and conservatively keeps its bounds.
+            if truth == (expression.op == '&&'):
+                self.refine_guard(expression.left, truth)
+                if self.symbol_bounds is not None:
+                    self.refine_guard(expression.right, truth)
+            return
+        a, b = self.index(expression.left), self.index(expression.right)
+        self.symbol_bounds = self.refined_bounds(expression, truth)
+        op = expression.op
+        if a.lower == a.upper and b.terms:
+            a, b = b, a
+            op = {'<': '>', '<=': '>=', '>': '<', '>=': '<=', '==': '==', '!=': '!='}[op]
+        if not truth:
+            op = {'<': '>=', '<=': '>', '>': '<=', '>=': '<', '==': '!=', '!=': '=='}[op]
+        # Bound a multi-axis affine index as a whole; individual axis bounds
+        # would lose the correlation in a padded block/thread tail guard.
+        if a.terms is not None and b.lower == b.upper:
+            low, high, limit = a.lower, a.upper, b.lower
+            if op == '<': high = min(high, limit - 1)
+            elif op == '<=': high = min(high, limit)
+            elif op == '>': low = max(low, limit + 1)
+            elif op == '>=': low = max(low, limit)
+            elif op == '==': low, high = max(low, limit), min(high, limit)
+            elif low == high == limit: low, high = 1, 0
+            if low > high:
+                self.symbol_bounds = None
+            else:
+                self.integer_constraints.append((a.terms, low - a.constant, high - a.constant))
+
+    def conditional(self, statement):
+        predicate = self.predicate(statement.cond)
+        outer = (self.values, self.ints, self.definitions, self.mutable,
+                 self.symbol_bounds, self.integer_constraints)
+        label = self.label_count
+        self.label_count += 1
+        self.put(f'@!{predicate} bra ELSE_{label};')
+        for truth, body in ((True, statement.body), (False, statement.else_body)):
+            if not truth:
+                self.put(f'bra COND_END_{label};')
+                self.lines.append(f'ELSE_{label}:')
+            self.values, self.ints = dict(outer[0]), dict(outer[1])
+            self.definitions, self.mutable = set(), set(outer[3])
+            self.symbol_bounds = outer[4]
+            self.integer_constraints = list(outer[5])
+            self.refine_guard(statement.cond, truth)
+            if self.symbol_bounds is not None:
+                for child in sequence(body, 'conditional body'):
+                    self.statement(child)
+            self.values, self.ints, self.definitions, self.mutable, self.symbol_bounds, self.integer_constraints = outer
+        self.lines.append(f'COND_END_{label}:')
+
     def loop(self, statement):
         axis = statement.axis
         require(isinstance(axis, Axis) and axis.window is None and axis.extent.is_static,
@@ -336,13 +405,7 @@ class StructuredEmitter(Emitter):
         require(start.lower >= 0 and 0 < step.lower == step.upper, 'loop start must be nonnegative and stride must be a positive constant')
         require(0 <= end.lower <= end.upper <= extent, 'loop end must remain inside its axis extent')
         require(extent - 1 + step.upper < 2**31, 'loop induction increment may overflow')
-        accumulators = {}
-        for child in body:
-            if isinstance(child, Accum):
-                self.check_accumulator(child, name)
-                require(child.name not in accumulators or accumulators[child.name].op.name == child.op.name,
-                        'one accumulator cannot mix reduction operators')
-                accumulators[child.name] = child
+        accumulators = self.loop_accumulators(body, name)
         for accumulator in accumulators.values():
             if statement.seed:
                 register = self.reg('f')
@@ -390,9 +453,11 @@ class StructuredEmitter(Emitter):
             self.emit_assign(statement)
         elif isinstance(statement, (Loop, StridedLoop)):
             self.loop(statement)
+        elif isinstance(statement, Cond):
+            self.conditional(statement)
         elif isinstance(statement, Accum):
             valid_name(statement.name)
-            require(statement.name in self.accum_context, 'Accum must be in the immediate body of its reduction loop')
+            require(statement.name in self.accum_context, 'Accum must be inside its reduction loop')
             self.check_accumulator(statement, next(iter(self.accum_context[statement.name].axes)))
             operands = [self.value(statement.base if statement.base is not None else statement.name), self.value(statement.value)]
             self.emit_math(statement.op.name, operands, self.value(statement.name))
@@ -521,7 +586,8 @@ class StructuredEmitter(Emitter):
                               '*': lambda: left * right, '<': lambda: left < right,
                               '<=': lambda: left <= right, '>': lambda: left > right,
                               '>=': lambda: left >= right, '==': lambda: left == right,
-                              '!=': lambda: left != right}
+                              '!=': lambda: left != right, '&&': lambda: bool(left) and bool(right),
+                              '||': lambda: bool(left) or bool(right)}
                 if expression.op in ('/', '//', '%'):
                     require(left >= 0 and right > 0, 'coverage proof division has invalid operands')
                     return left % right if expression.op == '%' else left // right
@@ -570,6 +636,9 @@ class StructuredEmitter(Emitter):
                         visit(statement.body, inner)
                 elif isinstance(statement, Let) and not f32(statement.dtype):
                     environment[statement.name] = integer(statement.value, environment)
+                elif isinstance(statement, Cond):
+                    branch = statement.body if integer(statement.cond, environment) else statement.else_body
+                    visit(branch, dict(environment))
                 elif any(contains_output(getattr(statement, field, ())) for field in ('body', 'else_body')):
                     raise CompileError('output coverage proof does not support this conditional/nested write topology')
 

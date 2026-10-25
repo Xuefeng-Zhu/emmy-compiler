@@ -1,0 +1,13 @@
+test_branch_local_ssa_cannot_escape_or_replace_outer_binding (test_conditionals.ConditionalTests.test_branch_local_ssa_cannot_escape_or_replace_outer_binding) ... ok
+test_compound_rectangle_guard_and_equality_guard (test_conditionals.ConditionalTests.test_compound_rectangle_guard_and_equality_guard) ... ok
+test_conditional_accumulator_is_seeded_by_its_enclosing_loop (test_conditionals.ConditionalTests.test_conditional_accumulator_is_seeded_by_its_enclosing_loop) ... ok
+test_conditional_coverage_rejects_gaps_and_overlaps (test_conditionals.ConditionalTests.test_conditional_coverage_rejects_gaps_and_overlaps) ... ok
+test_guard_is_required_for_out_of_bounds_tail (test_conditionals.ConditionalTests.test_guard_is_required_for_out_of_bounds_tail) ... ok
+test_guarded_attention_256_keys_and_rectangular_shapes (test_conditionals.ConditionalTests.test_guarded_attention_256_keys_and_rectangular_shapes) ... ok
+test_guarded_attention_256_square_compiles (test_conditionals.ConditionalTests.test_guarded_attention_256_square_compiles) ... ok
+test_if_else_has_separate_ssa_scopes_and_one_writer (test_conditionals.ConditionalTests.test_if_else_has_separate_ssa_scopes_and_one_writer) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.833s
+
+OK

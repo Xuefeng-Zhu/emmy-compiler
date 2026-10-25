@@ -22,12 +22,16 @@ validated by the loader, then checked against the chosen backend's contract.
 
 Dispatch depends on IR node structure, never filenames or problem identifiers.
 
-- `ptx.py`: the original scalar/grouped pointwise path, with affine bounds and
-  exact contiguous output coverage. Its four GPU-tested PTX artifacts are unchanged.
-- `reduction.py`: validated sum/mean/per-row topology, neutral tail lanes, full
-  warp shuffle and unique shared-tree writers. See REDUCTIONS.md.
-- `structured.py`: common scalar arithmetic, bounded row-major indices, Tile and
-  raster decoding, nested loops, state lifetimes and output-coverage proofs.
+- `ptx.py`: common `emit_math` operations and register allocation, plus the
+  scalar/grouped rank-1 pointwise path with affine bounds and exact contiguous
+  output coverage. Rank-2 pointwise graphs use the structured path. The original
+  four pointwise GPU-tested PTX artifacts are unchanged.
+- `reduction.py`: single-state add/product/max/min reductions with scalar
+  transforms, neutral tail lanes, full-warp shuffle and unique shared-tree
+  writers. See REDUCTIONS.md.
+- `structured.py`: bounded row-major indices, Tile and raster decoding, loops,
+  integer-predicate conditionals, state lifetimes and output-coverage proofs. Scalar Assign/Accum nodes
+  call the same inherited `emit_math` used by the rank-1 path.
 - `cooperative.py`: validated multi-state per-row reductions and a second output
   pass, reusing structured scalar operations.
 - `matmul.py`: shared allocation, async-copy groups, alignment/domain reasoning,
@@ -46,6 +50,10 @@ indices and known scalar operators. Other dtypes, dynamic dimensions, unknown
 nodes/operators and unproven address or synchronization contracts fail clearly.
 Grouped pointwise partial cells, swizzled shared layouts, arbitrary async races,
 partial cooperative warps and general multi-kernel graphs remain unsupported.
+Conditionals have independent SSA scopes and may update existing carried
+accumulators. Integer comparisons refine branch index bounds; output coverage
+follows the branch taken for each logical coordinate. Shared-memory contractions
+currently reject Cond to preserve their uniform synchronization checks.
 The ordinary structured output proof has explicit finite-domain resource limits.
 See ADVANCED_IR.md for exact limits and NUMERICS.md for floating-point choices.
 
@@ -53,7 +61,7 @@ Emission completes in memory before stdout is written, so rejected IR cannot
 leave partial PTX. Official deserialization uses expression evaluation; only
 trusted official or self-generated IR is supported, not hostile uploads.
 
-169 deterministic local tests and four limited PTX CPU models check values,
+Deterministic local tests and four PTX CPU models check values,
 addresses, state lifetimes, synchronization and invalid inputs. Separate official
 receipts establish assembly/execution/expected-array comparison for all 15 public
 fixtures. That hardware evidence does not cover every shape, special value,

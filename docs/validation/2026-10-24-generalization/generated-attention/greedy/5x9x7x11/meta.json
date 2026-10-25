@@ -1,0 +1,77 @@
+{
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "kernels": [
+    {
+      "node": "result",
+      "entry": "k_matmul_softmax_reduce_eda2a3",
+      "arg_order": [
+        "scale",
+        "q",
+        "kt",
+        "v",
+        "result"
+      ],
+      "args": [
+        {
+          "name": "scale",
+          "shape": [
+            1
+          ],
+          "dtype": "f32",
+          "data": [
+            2.6457513110645907
+          ]
+        },
+        {
+          "name": "q",
+          "shape": [
+            5,
+            7
+          ],
+          "dtype": "f32",
+          "seed": 1
+        },
+        {
+          "name": "kt",
+          "shape": [
+            7,
+            9
+          ],
+          "dtype": "f32",
+          "seed": 2
+        },
+        {
+          "name": "v",
+          "shape": [
+            9,
+            11
+          ],
+          "dtype": "f32",
+          "seed": 3
+        },
+        {
+          "name": "result",
+          "shape": [
+            5,
+            11
+          ],
+          "dtype": "f32",
+          "output": true
+        }
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "smem_bytes": 0,
+      "zero_outputs": []
+    }
+  ]
+}

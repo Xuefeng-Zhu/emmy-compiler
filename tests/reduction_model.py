@@ -191,6 +191,12 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                 a, b = integer(tid, args[1], dtype), integer(tid, args[2], dtype)
                 reg[args[0]] = {'ge': a >= b, 'ne': a != b, 'eq': a == b,
                                 'lt': a < b, 'le': a <= b, 'gt': a > b}[comparison]
+            elif re.fullmatch(r'setp\.(ge|ne|eq|lt|le|gt)\.f32', opcode):
+                comparison = opcode.split('.')[1]
+                a, b = np.float32(value(tid, args[1])), np.float32(value(tid, args[2]))
+                reg[args[0]] = (not np.isnan(a) and not np.isnan(b)
+                                and {'ge': a >= b, 'ne': a != b, 'eq': a == b,
+                                     'lt': a < b, 'le': a <= b, 'gt': a > b}[comparison])
             elif opcode in ('and.pred', 'or.pred', 'xor.pred', 'not.pred'):
                 a = bool(value(tid, args[1]))
                 if opcode == 'not.pred':
@@ -234,6 +240,13 @@ def run_reduction_ptx(ptx, launch, overrides=None):
             elif opcode in ('sqrt.rn.f32', 'ex2.approx.f32'):
                 operation = np.sqrt if opcode == 'sqrt.rn.f32' else np.exp2
                 reg[args[0]] = operation(np.float32(value(tid, args[1])), dtype=np.float32)
+            elif opcode in ('abs.f32', 'neg.f32'):
+                operation = np.abs if opcode == 'abs.f32' else np.negative
+                reg[args[0]] = operation(np.float32(value(tid, args[1])), dtype=np.float32)
+            elif opcode == 'copysign.f32':
+                # PTX takes the sign source before the magnitude source.
+                reg[args[0]] = np.copysign(np.float32(value(tid, args[2])),
+                                          np.float32(value(tid, args[1])))
             elif opcode in ('max.NaN.f32', 'min.NaN.f32'):
                 a, b = np.float32(value(tid, args[1])), np.float32(value(tid, args[2]))
                 if np.isnan(a) or np.isnan(b):

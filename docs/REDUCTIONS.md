@@ -1,11 +1,12 @@
-# Cooperative sum reduction
+# Cooperative scalar reductions
 
-The first reduction slice recognizes a validated single-block schedule shared by
+The reduction emitter validates the single-block schedule shared by
 [r01](https://github.com/cloudrift-ai/emmy-hackathon-2026/tree/ec8cde1943f88efea3827a95bda6085553d2d407/problems/r01_array_sum) and
 [r02](https://github.com/cloudrift-ai/emmy-hackathon-2026/tree/ec8cde1943f88efea3827a95bda6085553d2d407/problems/r02_big_sum).
 It does not select behavior by filename, entry name or public input values.
 
-1. Each thread accumulates input indices `tid + k * block_size`, starting at +0.
+1. Each thread processes input indices `tid + k * block_size`, starting with the
+   reduction operation's identity.
 2. All lanes reach five full-warp XOR shuffles, including lanes without inputs.
 3. One lane per warp stores its partial in statically declared shared memory.
 4. All threads synchronize; one lane per participating warp combines disjoint
@@ -19,12 +20,23 @@ The official scalar IR shape is `[]`, while metadata uses a one-element `[1]`
 buffer; it is never passed by value. The public cases use 128 threads and 16 bytes
 of static shared memory, while metadata `smem_bytes=0` describes dynamic storage.
 
-A sum with a different combiner, partial warp, non-power-of-two warp count,
-multiple blocks per row, non-f32 state, atomic output, custom barrier,
-segmented tree or empty input fails explicitly. Names and argument order may
-change, and tests vary both lengths and block sizes independently.
+Supported single-state operations are add/sum, multiply/prod, maximum/amax and
+minimum. The loop can contain multiple scalar Load, Assign and Let statements
+with one Accum. Its scalar work reuses the common emitter, so sum of squares,
+two-input transforms and activation/reduction compositions need no separate
+backend. Loads address the full reduction domain or a one-element parameter
+buffer at index zero. The shuffle and tree combiners must match the accumulator.
 
-## Mean and row sum
+Identities follow the pinned Emmy operation exactly: add uses 0, multiply 1,
+maximum/amax -1e30, and minimum +1e30. The finite maximum/minimum identities also
+apply to idle lanes; they are not replaced with infinities.
+
+Partial warps, non-power-of-two warp counts, multiple blocks per row, non-f32
+state, atomic output, custom barriers, segmented trees and empty inputs fail
+explicitly. Names and argument order may change, and tests vary both lengths and
+block sizes independently.
+
+## Mean and row results
 
 The same plan now supports an optional divisor epilogue and a row axis. Mean
 loads a one-element runtime input and applies `div.rn.f32` after summation; changing
@@ -33,8 +45,11 @@ the input dimensions `(rows, columns)` and map one CTA to each row. Addresses
 use `(row * columns + column) * 4`; row results use `row * 4`. A one-row matrix
 still retains its rank-2 input/rank-1 output contract. Grid size must equal rows.
 
-Both extensions preserve the same synchronized intra-CTA reduction. Tests cover
-column tails, idle lanes, changed row counts and blocks of 32–1024 threads.
+The same plan supports row maximum and transformed row sums without changing
+the ownership mapping. Tests cover rectangular row maximum, all-negative inputs,
+scalar and row sum of squares, two-input transforms, scalar parameters,
+activation/reduction combinations, column tails, idle lanes, changed row counts
+and blocks of 32–1024 threads.
 The CPU model resets all private/shared state between CTAs and rejects multiple
 threads or CTAs writing one ordinary output element.
 

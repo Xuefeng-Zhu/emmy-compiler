@@ -64,6 +64,41 @@ p00–p03 GPU receipts cover only the supplied finite public arrays. Exceptional
 values, NaN policy and hidden variants remain outside that GPU evidence; the
 upstream semantic conflict above is not resolved by those passing runs.
 
+## Shared scalar operations and activations
+
+`Emitter.emit_math` is shared by pointwise, structured, cooperative and
+contraction lowering. Rank and thread schedule do not change an operation's
+scalar implementation. Alongside add/multiply/ReLU, it supports subtract,
+divide, minimum/maximum, copy, reciprocal, sqrt, rsqrt, negative, abs, exp, tanh,
+sigmoid, SiLU, erf and both GELU forms. `absolute`, `true_divide` and `exp_fast`
+map to their corresponding operations.
+
+`abs.f32` clears the sign bit, including on negative zero. Divide and sqrt use
+explicit `.rn`; rsqrt computes rounded sqrt followed by rounded reciprocal.
+Natural exp multiplies by the f32 value of log2(e), then uses `ex2.approx.f32`.
+Sigmoid follows `1 / (1 + exp(-x))`, and SiLU follows
+`x / (1 + exp(-x))`, matching the pinned Emmy operation formulas.
+
+For `abs(x) > 0.125`, tanh computes
+`(1 - exp(-2*abs(x))) / (1 + exp(-2*abs(x)))`, then copies x's sign. Smaller
+inputs use a short odd polynomial to avoid cancellation near zero, preserving
+signed zero and tiny inputs. Erf similarly uses an odd polynomial near zero and
+the Abramowitz–Stegun 7.1.26 polynomial elsewhere, with f32 intermediates and the
+same exp lowering. `gelu` uses `0.5*x*(1 + erf(x/sqrt(2)))`; `gelu_tanh` uses
+`0.5*x*(1 + tanh(sqrt(2/pi)*(x + 0.044715*x^3)))`. These are approximate
+implementations; polynomial error, intermediate rounding and GPU exp2 error all
+contribute. No universal error bound is asserted for the emitted sequence.
+
+The emitted `copysign.f32` takes its sign from the first source operand and
+magnitude from the second, as specified by NVIDIA's
+[copysign reference](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-copysign).
+An independent hand-written PTX probe checks this operand convention in the model.
+
+Local activation regressions compare finite samples and composed kernels against
+NumPy and Python's `math.erf`, including changed shapes and rank-2 addressing. The CPU models use
+mathematical float32 exp2, so these tests do not measure NVIDIA's approximation
+error. The saved public GPU receipts predate these added activation variants.
+
 ## Single-block sum
 
 Every lane starts at +0 and accumulates its strided inputs with `add.rn.f32`.
@@ -83,9 +118,16 @@ and r04 float64-based oracles are 9.313225746154785e-10 and 5.7220458984375e-6;
 original tolerances remain unchanged. The corresponding official GPU fixtures passed with the same errors; this does
 not imply exceptional-input coverage.
 
+The same cooperative schedule also lowers multiply, maximum and minimum, and
+allows scalar transforms before Accum. Each loop update, warp shuffle combine
+and shared-tree combine uses the same operation. Idle lanes use the pinned
+identity: 1 for multiply, -1e30 for maximum/amax and +1e30 for minimum. Local
+regressions cover all-negative maxima, tails, sum of squares and composed
+activations; these added variants have no new hardware receipts.
+
 ## Fused, attention and atomic reductions
 
-Structured operations add explicit `sub.rn.f32`, `div.rn.f32`, `sqrt.rn.f32`,
+The shared scalar layer emits explicit `sub.rn.f32`, `div.rn.f32`, `sqrt.rn.f32`,
 NaN-propagating min/max and a natural-exp sequence `mul.rn.f32 log2(e)` followed
 by `ex2.approx.f32`. The local models calculate mathematical float32 exp2; they
 do not model the exact approximation error of GPU exp2. All finite public fused/attention fixtures subsequently passed GPU comparison;

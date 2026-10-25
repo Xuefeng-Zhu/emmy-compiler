@@ -1,0 +1,96 @@
+{
+  "baseline_commit": "025de8f",
+  "remote_gpu_requests": 0,
+  "cases": [
+    {
+      "case": "p00_scalar_add",
+      "current_ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+      "gpu_passed_ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "p01_vector_add",
+      "current_ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+      "gpu_passed_ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "p02_scale_shift",
+      "current_ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+      "gpu_passed_ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "p03_relu_mul",
+      "current_ptx_sha256": "967720bf8d816d245c886333b8be6e0f2bbc47e7719896d70612710e03ef18dc",
+      "gpu_passed_ptx_sha256": "967720bf8d816d245c886333b8be6e0f2bbc47e7719896d70612710e03ef18dc",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "r01_array_sum",
+      "current_ptx_sha256": "670c918236825f9f62c9133940860bd6f3438bf8247cd3d0b7d1a6bc280b609d",
+      "gpu_passed_ptx_sha256": "fbc54348423e2facc883f82c99a10798df55bac87fddc023ca6627e77073ec3a",
+      "matches_gpu_passed_artifact": false
+    },
+    {
+      "case": "r02_big_sum",
+      "current_ptx_sha256": "d09428e33a3b5788e61bcbd9953b3513e785c9bbd7bc5214448a302d2a436369",
+      "gpu_passed_ptx_sha256": "ad52fac82b3be39cf0d22253cfb09d20b78ca16457cd4d9a0b46f58a332bf541",
+      "matches_gpu_passed_artifact": false
+    },
+    {
+      "case": "r03_mean",
+      "current_ptx_sha256": "3d1de8375b707408c2deee577fa62316a367909908da9ca716ddbf9f2791dbda",
+      "gpu_passed_ptx_sha256": "67d314804b7f029f0c54ad0bba8951c8a1061a014406a227a74a88318d41d1f9",
+      "matches_gpu_passed_artifact": false
+    },
+    {
+      "case": "r04_row_sum",
+      "current_ptx_sha256": "7dd777611544979bd2427a0dae47e3d957ec33475ba87c1ee17fadb9abf1afad",
+      "gpu_passed_ptx_sha256": "8531cfeb40dafeb27495bce58a4f482900dd8a8bf780c90cd75ae0aa7d801571",
+      "matches_gpu_passed_artifact": false
+    },
+    {
+      "case": "f01_rmsnorm",
+      "current_ptx_sha256": "be81e0e38b2666d47c8455c220e3d91e1a714b084c2e6f39ea265024739ae8a7",
+      "gpu_passed_ptx_sha256": "be81e0e38b2666d47c8455c220e3d91e1a714b084c2e6f39ea265024739ae8a7",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "f02_row_softmax",
+      "current_ptx_sha256": "97228c0a06c60138a42a689c0fdbc533b48bc74103108efac83ad13204069eee",
+      "gpu_passed_ptx_sha256": "97228c0a06c60138a42a689c0fdbc533b48bc74103108efac83ad13204069eee",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "f03_l2norm",
+      "current_ptx_sha256": "e452869238ed9a31e71fecd581baba3299d48f7e322e7ba6634bf7e79a6c2424",
+      "gpu_passed_ptx_sha256": "e452869238ed9a31e71fecd581baba3299d48f7e322e7ba6634bf7e79a6c2424",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "a01_attention",
+      "current_ptx_sha256": "4686359ca9b0d29ee73025853fff7bab56e73694498d387099aefd7a94185afc",
+      "gpu_passed_ptx_sha256": "4686359ca9b0d29ee73025853fff7bab56e73694498d387099aefd7a94185afc",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "a02_attention_128",
+      "current_ptx_sha256": "752f64627a01de125f4aeeccdb02a9ce64391aefc495ceae95c2aa44276bc4d7",
+      "gpu_passed_ptx_sha256": "752f64627a01de125f4aeeccdb02a9ce64391aefc495ceae95c2aa44276bc4d7",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "m01_matmul_512",
+      "current_ptx_sha256": "03478118931c84bed72baaea6d1e056dd37573059f8c19e6c7348f42fcd91722",
+      "gpu_passed_ptx_sha256": "03478118931c84bed72baaea6d1e056dd37573059f8c19e6c7348f42fcd91722",
+      "matches_gpu_passed_artifact": true
+    },
+    {
+      "case": "m02_matmul_rect",
+      "current_ptx_sha256": "29559498cff54a7c51790c7fec59f3364e95beffb4c03fe5da399a561dcf148c",
+      "gpu_passed_ptx_sha256": "29559498cff54a7c51790c7fec59f3364e95beffb4c03fe5da399a561dcf148c",
+      "matches_gpu_passed_artifact": true
+    }
+  ]
+}

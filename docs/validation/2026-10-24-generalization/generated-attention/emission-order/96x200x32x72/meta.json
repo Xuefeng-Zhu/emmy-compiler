@@ -1,0 +1,77 @@
+{
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "kernels": [
+    {
+      "node": "result",
+      "entry": "k_matmul_softmax_reduce_f44130",
+      "arg_order": [
+        "scale",
+        "q",
+        "kt",
+        "v",
+        "result"
+      ],
+      "args": [
+        {
+          "name": "scale",
+          "shape": [
+            1
+          ],
+          "dtype": "f32",
+          "data": [
+            5.656854249492381
+          ]
+        },
+        {
+          "name": "q",
+          "shape": [
+            96,
+            32
+          ],
+          "dtype": "f32",
+          "seed": 1
+        },
+        {
+          "name": "kt",
+          "shape": [
+            32,
+            200
+          ],
+          "dtype": "f32",
+          "seed": 2
+        },
+        {
+          "name": "v",
+          "shape": [
+            200,
+            72
+          ],
+          "dtype": "f32",
+          "seed": 3
+        },
+        {
+          "name": "result",
+          "shape": [
+            96,
+            72
+          ],
+          "dtype": "f32",
+          "output": true
+        }
+      ],
+      "grid": [
+        27,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "smem_bytes": 0,
+      "zero_outputs": []
+    }
+  ]
+}

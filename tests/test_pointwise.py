@@ -107,7 +107,7 @@ class PointwiseTests(unittest.TestCase):
         self.fixture('p03_relu_mul')
         original = copy.deepcopy(self.raw)
         for old, new in (("args=('in0__u0',)", "args=('in0__u0', 'in0__u0')"),
-                         ("ElementwiseImpl('relu')", "ElementwiseImpl('exp')")):
+                         ("ElementwiseImpl('relu')", "ElementwiseImpl('log')")):
             with self.subTest(replacement=new):
                 self.raw = copy.deepcopy(original)
                 body = self.raw['nodes']['mul']['op_fields']['body']

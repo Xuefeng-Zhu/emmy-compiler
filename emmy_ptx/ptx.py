@@ -77,6 +77,109 @@ class Emitter:
         self.put(f'add.u64 {address}, {self.pointers[buffer]}, {byte_offset};')
         return address, scale, offset
 
+    def emit_math(self, operation, operands, dst=None):
+        """Shared f32 scalar lowering, independent of rank and thread schedule."""
+        import struct
+
+        literal = lambda value: '0f' + struct.pack('>f', value).hex()
+        operation = {'absolute': 'abs', 'true_divide': 'divide', 'exp_fast': 'exp'}.get(operation, operation)
+        arity = {'add': 2, 'subtract': 2, 'multiply': 2, 'divide': 2,
+                 'maximum': 2, 'minimum': 2, 'reciprocal': 1,
+                 'sqrt': 1, 'rsqrt': 1, 'exp': 1, 'copy': 1, 'relu': 1,
+                 'abs': 1, 'negative': 1, 'tanh': 1, 'sigmoid': 1,
+                 'silu': 1, 'erf': 1, 'gelu': 1, 'gelu_tanh': 1}
+        require(operation in arity, f'unsupported elementwise operation: {operation}')
+        require(len(operands) == arity[operation], f'{operation}: wrong operand count')
+        dst = dst or self.reg('f')
+        if operation == 'exp':
+            scaled = self.reg('f')
+            self.put(f'mul.rn.f32 {scaled}, {operands[0]}, 0f3fb8aa3b;')
+            self.put(f'ex2.approx.f32 {dst}, {scaled};')
+        elif operation == 'reciprocal':
+            self.put(f'div.rn.f32 {dst}, 0f3f800000, {operands[0]};')
+        elif operation == 'rsqrt':
+            root = self.emit_math('sqrt', operands)
+            self.emit_math('reciprocal', [root], dst)
+        elif operation == 'relu':
+            self.put(f'max.NaN.f32 {dst}, {operands[0]}, 0f00000000;')
+        elif operation in ('sigmoid', 'silu'):
+            # Preserve Emmy's 1/(1+exp(-x)) and x/(1+exp(-x)) formulas.
+            negative = self.emit_math('negative', operands)
+            exponential = self.emit_math('exp', [negative])
+            denominator = self.emit_math('add', [literal(1.0), exponential])
+            self.emit_math('divide', [literal(1.0) if operation == 'sigmoid' else operands[0], denominator], dst)
+        elif operation == 'tanh':
+            # exp(-2|x|) avoids overflow. Copying x's sign preserves -0.
+            # This uses exp2 rather than tanh.approx's weaker 2^-11 error bound.
+            magnitude = self.emit_math('abs', operands)
+            scaled = self.emit_math('multiply', [magnitude, literal(-2.0)])
+            exponential = self.emit_math('exp', [scaled])
+            numerator = self.emit_math('subtract', [literal(1.0), exponential])
+            denominator = self.emit_math('add', [literal(1.0), exponential])
+            result = self.emit_math('divide', [numerator, denominator])
+            self.put(f'copysign.f32 {dst}, {operands[0]}, {result};')
+            # A short odd polynomial avoids 1-exp cancellation near zero,
+            # preserving tiny inputs and the sign of zero.
+            square = self.emit_math('multiply', [operands[0], operands[0]])
+            polynomial = literal(-17.0 / 315.0)
+            for coefficient in (2.0 / 15.0, -1.0 / 3.0, 1.0):
+                polynomial = self.emit_math('multiply', [polynomial, square])
+                polynomial = self.emit_math('add', [polynomial, literal(coefficient)])
+            small = self.emit_math('multiply', [operands[0], polynomial])
+            predicate = self.reg('p')
+            self.put(f'setp.le.f32 {predicate}, {magnitude}, {literal(0.125)};')
+            self.put(f'selp.f32 {dst}, {small}, {dst}, {predicate};')
+        elif operation == 'erf':
+            # Abramowitz-Stegun 7.1.26: analytic absolute error <= 1.5e-7.
+            # Explicit f32 rounding and GPU exp2 add error, tested separately.
+            magnitude = self.emit_math('abs', operands)
+            t = self.emit_math('multiply', [magnitude, literal(0.3275911)])
+            t = self.emit_math('add', [literal(1.0), t])
+            t = self.emit_math('reciprocal', [t])
+            polynomial = literal(1.061405429)
+            for coefficient in (-1.453152027, 1.421413741, -0.284496736, 0.254829592):
+                polynomial = self.emit_math('multiply', [polynomial, t])
+                polynomial = self.emit_math('add', [polynomial, literal(coefficient)])
+            polynomial = self.emit_math('multiply', [polynomial, t])
+            square = self.emit_math('multiply', [magnitude, magnitude])
+            square = self.emit_math('negative', [square])
+            exponential = self.emit_math('exp', [square])
+            tail = self.emit_math('multiply', [polynomial, exponential])
+            result = self.emit_math('subtract', [literal(1.0), tail])
+            self.put(f'copysign.f32 {dst}, {operands[0]}, {result};')
+            # Taylor's odd polynomial handles the cancellation-sensitive origin.
+            positive_square = self.emit_math('multiply', [operands[0], operands[0]])
+            polynomial = literal(1.0 / 216.0)
+            for coefficient in (-1.0 / 42.0, 1.0 / 10.0, -1.0 / 3.0, 1.0):
+                polynomial = self.emit_math('multiply', [polynomial, positive_square])
+                polynomial = self.emit_math('add', [polynomial, literal(coefficient)])
+            small = self.emit_math('multiply', [literal(1.1283791670955126), operands[0]])
+            small = self.emit_math('multiply', [small, polynomial])
+            predicate = self.reg('p')
+            self.put(f'setp.le.f32 {predicate}, {magnitude}, {literal(0.125)};')
+            self.put(f'selp.f32 {dst}, {small}, {dst}, {predicate};')
+        elif operation in ('gelu', 'gelu_tanh'):
+            value = operands[0]
+            if operation == 'gelu':
+                normalized = self.emit_math('divide', [value, literal(2.0 ** 0.5)])
+                activation = self.emit_math('erf', [normalized])
+            else:
+                square = self.emit_math('multiply', [value, value])
+                cube = self.emit_math('multiply', [square, value])
+                cubic_term = self.emit_math('multiply', [literal(0.044715), cube])
+                polynomial = self.emit_math('add', [value, cubic_term])
+                normalized = self.emit_math('multiply', [literal((2.0 / 3.141592653589793) ** 0.5), polynomial])
+                activation = self.emit_math('tanh', [normalized])
+            shifted = self.emit_math('add', [literal(1.0), activation])
+            half = self.emit_math('multiply', [literal(0.5), value])
+            self.emit_math('multiply', [half, shifted], dst)
+        else:
+            instruction = {'add': 'add.rn', 'subtract': 'sub.rn', 'multiply': 'mul.rn',
+                           'divide': 'div.rn', 'maximum': 'max.NaN', 'minimum': 'min.NaN',
+                           'sqrt': 'sqrt.rn', 'copy': 'mov', 'negative': 'neg', 'abs': 'abs'}[operation]
+            self.put(f'{instruction}.f32 {dst}, ' + ', '.join(operands) + ';')
+        return dst
+
     def statement(self, stmt):
         if isinstance(stmt, Load):
             require(getattr(stmt.dtype, 'name', None) == 'f32', 'Load: only f32 supported')
@@ -90,18 +193,10 @@ class Emitter:
             require(getattr(stmt.dtype, 'name', None) == 'f32', 'Assign: only f32 supported')
             require(isinstance(stmt.op, ElementwiseImpl), 'Assign: operator must be an ElementwiseImpl')
             require(isinstance(stmt.args, (tuple, list)) and all(isinstance(arg, str) and arg for arg in stmt.args), 'Assign: args must be a sequence of nonempty SSA names')
-            arities = {'add': 2, 'multiply': 2, 'relu': 1}
-            require(stmt.op.name in arities, f'unsupported elementwise operation: {stmt.op.name}')
-            require(len(stmt.args) == arities[stmt.op.name], f'Assign {stmt.op.name}: wrong operand count')
             operands = [self.value(arg) for arg in stmt.args]
             dst = self.reg('f')
             self.bind(stmt.name, dst)
-            if stmt.op.name == 'relu':
-                # Propagate NaN; max(+0, -0) is +0; no flush-to-zero modifier.
-                self.put(f'max.NaN.f32 {dst}, {operands[0]}, 0f00000000;')
-            else:
-                instr = {'add': 'add.rn.f32', 'multiply': 'mul.rn.f32'}[stmt.op.name]
-                self.put(f'{instr} {dst}, {operands[0]}, {operands[1]};')
+            self.emit_math(stmt.op.name, operands, dst)
         elif isinstance(stmt, Write):
             require(getattr(stmt.value_dtype, 'name', None) == 'f32', 'Write: only f32 supported')
             require(not stmt.atomic and stmt.swizzle == 'NONE', 'atomic or swizzled Write unsupported')
@@ -170,7 +265,9 @@ def emit(kernel: Kernel) -> str:
             return CooperativeEmitter(kernel).run()
         from .reduction import ReductionEmitter
         return ReductionEmitter(kernel).run()
-    if len(tile.axes) == 1 and tile.block_threads is None and all(isinstance(statement, (Load, Assign, Write)) for statement in tile.body):
+    if (len(tile.axes) == 1 and tile.block_threads is None
+            and all(len(dims) == 1 for dims in kernel.dimensions.values())
+            and all(isinstance(statement, (Load, Assign, Write)) for statement in tile.body)):
         return Emitter(kernel).run()
     from .structured import StructuredEmitter
     return StructuredEmitter(kernel).run()

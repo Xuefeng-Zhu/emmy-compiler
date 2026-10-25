@@ -1,4 +1,4 @@
-"""Validated per-row f32 sum lowering, derived from cooperative Kernel IR.
+"""Validated per-row f32 reductions, derived from cooperative Kernel IR.
 
 This deliberately supports one coherent reduction topology, not arbitrary control
 flow. Every statement/semantic field is checked before an equivalent schedule is
@@ -11,10 +11,10 @@ from emmy.compiler.ir.elementwise import ElementwiseImpl
 from emmy.compiler.ir.expr import BinaryExpr, Literal, Var
 from emmy.compiler.ir.kernel.ir import Smem, Sync, TreeHalve, WarpShuffle
 from emmy.compiler.ir.stmt.blocks import Cond, StridedLoop
-from emmy.compiler.ir.stmt.leaves import Accum, Assign, Load, Write
+from emmy.compiler.ir.stmt.leaves import Accum, Assign, Let, Load, Write
 
 from .loader import Kernel, require
-from .ptx import Emitter
+from .structured import StructuredEmitter, float_literal
 
 
 def check(condition, message):
@@ -43,15 +43,16 @@ def variable(expr, value):
     return isinstance(expr, Var) and expr.name == value
 
 
-def combine(stmt, state):
+def combine(stmt, state, operation):
     check(f32(stmt.dtype), 'combine dtype must be f32')
     check(items(stmt.state, 1, 'only one reduction state supported') == (state,), 'combine state does not match accumulator')
     peer, = items(stmt.state_b, 1, 'only one peer state supported')
     check(name(peer) != state, 'peer state must differ from accumulator')
-    assign, = items(stmt.combine_states, 1, 'only a single add combiner supported')
+    assign, = items(stmt.combine_states, 1, 'only a single scalar combiner supported')
     check(isinstance(assign, Assign), 'combine must contain Assign')
-    check(isinstance(assign.op, ElementwiseImpl) and assign.op.name == 'add', 'only sum combiners supported')
-    check(assign.name == state and items(assign.args, 2, 'add combiner needs two operands') == (state, peer), 'combiner operands must be accumulator and peer')
+    check(isinstance(assign.op, ElementwiseImpl) and assign.op.name in ('add', 'sum', 'multiply', 'prod', 'maximum', 'amax', 'minimum')
+          and assign.op.reduce_canon == operation, 'combiner must match the accumulator operation')
+    check(assign.name == state and items(assign.args, 2, 'reduction combiner needs two operands') == (state, peer), 'combiner operands must be accumulator and peer')
     check(assign.dtype is None or f32(assign.dtype), 'combiner Assign must inherit f32 or declare f32')
 
 
@@ -71,10 +72,14 @@ def conditional_write(stmt, axis):
 
 
 @dataclass(frozen=True)
-class SumPlan:
+class ReductionPlan:
     size: int
     threads: int
-    input: str
+    body: tuple
+    accumulator: Accum
+    operation: str
+    tile_axis: str
+    loop_axis: str
     output: str
     rows: int = 1
     row_axis: str | None = None
@@ -85,7 +90,7 @@ class SumPlan:
         return self.threads // 32
 
 
-def validate_sum(kernel: Kernel) -> SumPlan:
+def validate_reduction(kernel: Kernel) -> ReductionPlan:
     tile, = items(kernel.body, 1, 'expected one cooperative Tile')
     threads = tile.block_threads
     check(type(threads) is int and 32 <= threads <= 1024 and threads & (threads - 1) == 0, 'thread count must be a power of two from 32 to 1024')
@@ -104,9 +109,9 @@ def validate_sum(kernel: Kernel) -> SumPlan:
     check(isinstance(axis, Axis) and axis.window is None and axis.extent.is_static and axis.extent.as_static() == threads, 'Tile extent must match the participating block')
     tile_axis = name(axis.name)
     check(tile_axis not in ('lane', 'warp', row_axis) and row_axis not in ('lane', 'warp'), 'Tile axes must be distinct from lane and warp')
-    check(len(kernel.outputs) == 1, 'sum requires one output')
+    check(len(kernel.outputs) == 1, 'reduction requires one output')
     output_name, = kernel.outputs
-    loop, shuffle, shared, partial, sync, tree, final = items(tile.body, 7, 'unsupported sum topology; expected loop/shuffle/shared/write/sync/tree/write')
+    loop, shuffle, shared, partial, sync, tree, final = items(tile.body, 7, 'unsupported reduction topology; expected loop/shuffle/shared/write/sync/tree/write')
     check(isinstance(loop, StridedLoop), 'expected StridedLoop')
     check(isinstance(loop.axis, Axis) and loop.axis.window is None and loop.axis.extent.is_static, 'loop needs a static unwindowed axis')
     loop_axis = name(loop.axis.name)
@@ -115,26 +120,43 @@ def validate_sum(kernel: Kernel) -> SumPlan:
     check(type(size) is int and 0 < size < 2**31, 'loop extent must be a positive 31-bit integer')
     check(variable(loop.start, tile_axis) and integer(loop.step, threads), 'loop must start at its thread coordinate and stride by block size')
     check(loop.seed is True and loop.end is None and loop.unroll is False, 'custom loop seeds, bounds or unrolling unsupported')
-    load, accum = items(loop.body, 2, 'sum loop must contain one Load and one Accum')
-    check(isinstance(load, Load) and f32(load.dtype) and isinstance(load.input, str) and load.input in kernel.inputs, 'sum must load its f32 input')
-    input_name = load.input
+    check(isinstance(loop.body, (tuple, list)) and loop.body, 'reduction loop body must be a nonempty sequence')
+    check(all(isinstance(stmt, (Load, Assign, Let, Accum)) for stmt in loop.body),
+          'reduction loop supports scalar Loads, Assigns, Lets and one Accum')
+    accumulators = [stmt for stmt in loop.body if isinstance(stmt, Accum)]
+    accum, = items(accumulators, 1, 'reduction loop must carry exactly one accumulator')
+    check(f32(accum.dtype), 'reduction needs an f32 Accum')
+    state = name(accum.name)
+    check(state not in (tile_axis, row_axis, loop_axis, 'lane', 'warp'), 'accumulator aliases a reduction coordinate')
+    check(isinstance(accum.op, ElementwiseImpl) and accum.op.reduce_canon in ('add', 'multiply', 'maximum', 'minimum')
+          and accum.op.identity is not None, 'unsupported accumulator operation or identity')
+    operation = accum.op.reduce_canon
+    check(accum.base is None and items(accum.axes, 1, 'Accum must declare its reduction axis') == (loop_axis,),
+          'rescaled or mismatched accumulator unsupported')
     input_dims = (size,) if row_axis is None else (rows, size)
     output_dims = () if row_axis is None else (rows,)
-    check(kernel.dimensions[input_name] == input_dims and kernel.dimensions[output_name] == output_dims, 'sum input/output dimensions must match its Tile and loop axes')
-    loaded, = items(load.names, 1, 'only scalar reduction loads supported')
-    name(loaded)
-    indices = items(load.index, len(input_dims), 'reduction input index rank mismatch')
-    check(variable(indices[-1], loop_axis) and (row_axis is None or variable(indices[0], row_axis)), 'sum load indices must match row and strided loop axes')
-    check(isinstance(accum, Accum) and f32(accum.dtype), 'sum needs an f32 Accum')
-    state = name(accum.name)
-    check(state != loaded and accum.value == loaded, 'Accum must fold the loaded value into a distinct state')
-    check(isinstance(accum.op, ElementwiseImpl) and accum.op.name == 'add', 'only add accumulators supported')
-    check(accum.base is None and items(accum.axes, 1, 'Accum must declare its reduction axis') == (loop_axis,), 'rescaled or mismatched accumulator unsupported')
+    check(kernel.dimensions[output_name] == output_dims, 'reduction output dimensions must match its Tile axes')
+    loaded_names, used_inputs = set(), set()
+    full_input = False
+    for load in (stmt for stmt in loop.body if isinstance(stmt, Load)):
+        check(f32(load.dtype) and isinstance(load.input, str) and load.input in kernel.inputs, 'reduction must load f32 input buffers')
+        loaded, = items(load.names, 1, 'only scalar reduction loads supported')
+        check(name(loaded) != state, 'Load must not replace the accumulator')
+        loaded_names.add(loaded)
+        used_inputs.add(load.input)
+        dimensions = kernel.dimensions[load.input]
+        indices = items(load.index, len(dimensions), 'reduction input index rank mismatch')
+        if (dimensions == input_dims and variable(indices[-1], loop_axis)
+                and (row_axis is None or variable(indices[0], row_axis))):
+            full_input = True
+        else:
+            check(dimensions == (1,) and integer(indices[0], 0), 'reduction input dimensions must match its axes or be a scalar buffer')
+    check(full_input, 'reduction must load at least one input matching its loop domain')
     check(isinstance(shuffle, WarpShuffle) and type(shuffle.length) is int and shuffle.length == 32, 'only full-warp shuffle reductions supported')
-    combine(shuffle, state)
+    combine(shuffle, state, operation)
     check(isinstance(shared, Smem) and shared.dtype == 'float' and type(shared.align) is int and shared.align in (0, 4), 'shared buffer must have natural f32 alignment')
     shared_name = name(shared.name)
-    check(shared_name not in kernel.shapes and shared_name not in (tile_axis, row_axis, loop_axis, 'lane', 'warp', loaded, state), 'shared buffer name aliases another binding')
+    check(shared_name not in kernel.shapes and shared_name not in (tile_axis, row_axis, loop_axis, 'lane', 'warp', state) and shared_name not in loaded_names, 'shared buffer name aliases another binding')
     warps = threads // 32
     extents = items(shared.extents, 1, 'shared buffer must be one-dimensional')
     check(type(extents[0]) is int and extents[0] == warps, 'shared buffer must contain one element per warp')
@@ -145,69 +167,69 @@ def validate_sum(kernel: Kernel) -> SumPlan:
     check(isinstance(tree, TreeHalve) and type(tree.length) is int and tree.length == warps and tree.tid_var == 'warp', 'tree must combine one partial per warp')
     check(items(tree.bufs, 1, 'only one shared tree supported') == (shared_name,), 'tree buffer does not match partial storage')
     check(type(tree.barrier_id) is int and tree.barrier_id == 0 and tree.barrier_count is None and tree.inner is None, 'named barriers and segmented trees unsupported')
-    combine(tree, state)
+    combine(tree, state, operation)
     epilogue = conditional_body(final, tile_axis)
-    check(isinstance(epilogue, (tuple, list)) and len(epilogue) in (1, 3), 'sum epilogue must write directly or load/divide/write')
+    check(isinstance(epilogue, (tuple, list)) and len(epilogue) in (1, 3), 'reduction epilogue must write directly or load/divide/write')
     divisor, result = None, state
     if len(epilogue) == 3:
         denominator, division, output_write = epilogue
         check(isinstance(denominator, Load) and f32(denominator.dtype) and isinstance(denominator.input, str) and denominator.input in kernel.inputs, 'division epilogue must load an f32 divisor buffer')
         divisor = denominator.input
-        check(divisor != input_name and kernel.dimensions[divisor] == (1,), 'divisor must be a separate one-element input buffer')
+        check(divisor not in used_inputs and kernel.dimensions[divisor] == (1,), 'divisor must be a separate one-element input buffer')
         denominator_name, = items(denominator.names, 1, 'divisor load must produce one value')
-        check(name(denominator_name) not in (loaded, state), 'divisor load shadows a reduction binding')
+        check(name(denominator_name) != state and denominator_name not in loaded_names, 'divisor load shadows a reduction binding')
         denominator_index, = items(denominator.index, 1, 'divisor load needs one index')
         check(integer(denominator_index, 0), 'divisor must be loaded at index zero')
         check(isinstance(division, Assign) and f32(division.dtype) and isinstance(division.op, ElementwiseImpl) and division.op.name == 'divide', 'epilogue must divide the sum by its loaded divisor')
         check(items(division.args, 2, 'divide requires two operands') == (state, denominator_name), 'divide operands must be sum and divisor')
         result = name(division.name)
-        check(result not in (state, loaded, denominator_name), 'divide result shadows an existing binding')
+        check(result not in (state, denominator_name) and result not in loaded_names, 'divide result shadows an existing binding')
     else:
         output_write, = epilogue
-    expected_inputs = frozenset((input_name, divisor)) if divisor else frozenset((input_name,))
+    expected_inputs = frozenset(used_inputs | ({divisor} if divisor else set()))
     check(kernel.inputs == expected_inputs, 'unused or unsupported reduction inputs')
-    check(isinstance(output_write, Write) and f32(output_write.value_dtype) and output_write.atomic is False and output_write.swizzle == 'NONE', 'sum output must be an ordinary f32 Write')
-    output_indices = items(output_write.index, len(output_dims), 'sum output index rank mismatch')
+    check(isinstance(output_write, Write) and f32(output_write.value_dtype) and output_write.atomic is False and output_write.swizzle == 'NONE', 'reduction output must be an ordinary f32 Write')
+    output_indices = items(output_write.index, len(output_dims), 'reduction output index rank mismatch')
     check(row_axis is None or variable(output_indices[0], row_axis), 'row result must use its Tile row index')
-    check(output_write.output == output_name and items(output_write.values, 1, 'sum output needs one value') == (result,), 'only the row leader may store its final reduction result')
-    return SumPlan(size, threads, input_name, output_name, rows, row_axis, divisor)
+    check(output_write.output == output_name and items(output_write.values, 1, 'reduction output needs one value') == (result,), 'only the row leader may store its final reduction result')
+    return ReductionPlan(size, threads, tuple(loop.body), accum, operation, tile_axis, loop_axis, output_name, rows, row_axis, divisor)
 
 
-class ReductionEmitter(Emitter):
+class ReductionEmitter(StructuredEmitter):
     def run(self):
         k = self.kernel
-        plan = validate_sum(k)
+        plan = validate_reduction(k)
         for buffer in k.arg_order:
             param, ptr = self.reg('rd'), self.reg('rd')
             self.put(f'ld.param.u64 {param}, [param_{buffer}];')
             self.put(f'cvta.to.global.u64 {ptr}, {param};')
             self.pointers[buffer] = ptr
         tid, lane, warp, index = [self.reg('r') for _ in range(4)]
-        acc, loaded, peer = [self.reg('f') for _ in range(3)]
+        acc, peer = [self.reg('f') for _ in range(2)]
         pred = self.reg('p')
         self.put(f'mov.u32 {tid}, %tid.x;')
         self.put(f'and.b32 {lane}, {tid}, 31;')
         self.put(f'shr.u32 {warp}, {tid}, 5;')
         # Identity initialization precedes the loop, including every idle lane.
-        self.put(f'mov.f32 {acc}, 0f00000000;')
+        self.put(f'mov.f32 {acc}, {float_literal(plan.accumulator.op.identity)};')
+        self.ints[plan.tile_axis] = self.integer_symbol(tid, 0, plan.threads - 1)
+        self.ints[plan.loop_axis] = self.integer_symbol(index, 0, plan.size - 1)
         self.put(f'mov.u32 {index}, {tid};')
-        row, row_offset = None, None
+        row = None
         if plan.row_axis is not None:
-            row, row_offset = self.reg('r'), self.reg('r')
+            row = self.reg('r')
             self.put(f'mov.u32 {row}, %ctaid.x;')
-            self.put(f'mul.lo.u32 {row_offset}, {row}, {plan.size};')
+            self.ints[plan.row_axis] = self.integer_symbol(row, 0, plan.rows - 1)
+        self.definitions.update(self.ints)
+        self.bind(plan.accumulator.name, acc)
         self.lines.append('SUM_LOOP:')
         self.put(f'setp.ge.u32 {pred}, {index}, {plan.size};')
         self.put(f'@{pred} bra SUM_LOOP_DONE;')
-        offset, address = self.reg('rd'), self.reg('rd')
-        global_index = index
-        if row_offset is not None:
-            global_index = self.reg('r')
-            self.put(f'add.u32 {global_index}, {row_offset}, {index};')
-        self.put(f'mul.wide.u32 {offset}, {global_index}, 4;')
-        self.put(f'add.u64 {address}, {self.pointers[plan.input]}, {offset};')
-        self.put(f'ld.global.f32 {loaded}, [{address}];')
-        self.put(f'add.rn.f32 {acc}, {acc}, {loaded};')
+        for statement in plan.body:
+            if isinstance(statement, Accum):
+                self.emit_math(plan.operation, [acc, self.value(statement.value)], acc)
+            else:
+                self.statement(statement)
         self.put(f'add.u32 {index}, {index}, {plan.threads};')
         self.put('bra SUM_LOOP;')
         self.lines.append('SUM_LOOP_DONE:')
@@ -216,7 +238,7 @@ class ReductionEmitter(Emitter):
             self.put(f'mov.b32 {bits}, {acc};')
             self.put(f'shfl.sync.bfly.b32 {shuffled}, {bits}, {delta}, 31, 0xffffffff;')
             self.put(f'mov.b32 {peer}, {shuffled};')
-            self.put(f'add.rn.f32 {acc}, {acc}, {peer};')
+            self.emit_math(plan.operation, [acc, peer], acc)
         shared_base, shared_offset, shared_addr = [self.reg('r') for _ in range(3)]
         self.put(f'mov.u32 {shared_base}, sum_smem;')
         self.put(f'mul.lo.u32 {shared_offset}, {warp}, 4;')
@@ -238,7 +260,7 @@ class ReductionEmitter(Emitter):
             self.put(f'ld.shared.f32 {acc}, [{shared_addr}];')
             self.put(f'add.u32 {other_addr}, {shared_addr}, {half * 4};')
             self.put(f'ld.shared.f32 {peer}, [{other_addr}];')
-            self.put(f'add.rn.f32 {acc}, {acc}, {peer};')
+            self.emit_math(plan.operation, [acc, peer], acc)
             self.put(f'st.shared.f32 [{shared_addr}], {acc};')
             self.lines.append(label + ':')
             self.put('bar.sync 0;')

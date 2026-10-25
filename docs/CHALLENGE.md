@@ -32,10 +32,8 @@ voice. AI assistance is allowed, but the participant must understand the compile
 The website permits several public Git hosts; the repository README asks for
 GitHub. Resolve that distinction before any later submission.
 
-The prior private repository push and separately approved public runner sessions
-are completed. They do not authorize future pushes or unrelated/new runner cases.
-Registration, agreements,
-credentials, public repository publication, paid resources and submission remain
-separate user decisions. The separate
-Open Kernel Challenge workspace, accounts, sessions and quotas are outside this
-project. Entry IP terms and redistribution permissions are not assumed settled.
+The [source repository](https://github.com/Xuefeng-Zhu/emmy-compiler) is public,
+and the authorized public runner sessions are complete. Future pushes, new
+runner cases, registration, agreements and final submission remain separate
+user decisions. The Open Kernel Challenge workspace, accounts, sessions and
+quotas are outside this project.

@@ -1,8 +1,7 @@
 # Submission readiness and participant explanation
 
-This checklist records work and remaining decisions. It does not register,
-publish, upload a video, accept terms or submit an entry. Official sources were
-rechecked on October 25, 2026: [challenge website](https://riftstack.ai/hackathon),
+This checklist records work and remaining entry materials. Official sources were
+rechecked on October 25, 2026 (UTC): [challenge website](https://riftstack.ai/hackathon),
 [task repository](https://github.com/cloudrift-ai/emmy-hackathon-2026), and the
 pinned TASK.md/MVP.md listed in CHALLENGE.md.
 
@@ -20,19 +19,19 @@ pinned TASK.md/MVP.md listed in CHALLENGE.md.
 
 ## User-owned prerequisites
 
-1. Review original-code licensing, third-party redistribution permissions and
-   competition IP terms. No public license is chosen automatically.
-2. Decide whether to push the new local commits and publish the currently private
-   repository. Neither action follows automatically from local development.
+1. Original code uses [Apache-2.0](../LICENSE). Review the separate competition
+   IP terms for entry; challenge reference materials remain outside Git.
+2. The [source repository](https://github.com/Xuefeng-Zhu/emmy-compiler) is public.
+   Review and push any subsequent local changes before submitting its URL.
 3. Record a 3–5 minute explanation in the participant's own voice, demonstrating
    understanding. Do not use generated voice to impersonate the participant.
 4. Confirm participant/team details, accessible repository/video links, eligibility
    and any submission terms, then explicitly authorize final submission.
 
-The website lists October 27, 2026 at 23:59 AoE as the deadline and permits
+The recorded official deadline is October 27, 2026 at 23:59 AoE. The website permits
 several public Git hosts; the repository README requests GitHub. The minimum
-engineering goal is all eight problems in the first two categories. The public eight-problem goal now has GPU evidence; hidden-set success and
-competition acceptance are not established by it.
+engineering goal is all eight problems in the first two categories; all eight
+have GPU PASS receipts.
 
 ## Suggested 4-minute explanation outline
 
@@ -48,7 +47,9 @@ competition acceptance are not established by it.
   zero-before-atomic contract. Choose one detail you understand well.
 - **2:50–3:35 — Evidence.** Run local tests; distinguish a CPU instruction model
   from PTX assembly/GPU output comparison. Show actual retained GPU receipts.
-- **3:35–4:00 — Limits and next steps.** Mention approximate exp, special-float
-  ambiguity, unsupported schedules and untested hidden variants honestly.
+- **3:35–4:00 — What the evidence covers.** Show the distinction between saved
+  public GPU results and local regressions for changed shapes and operations.
 
-Use this as an outline, not a claim that a recording exists or has been submitted.
+The [Chinese walkthrough](WALKTHROUGH.md) expands this outline around the common
+emission layer and schedule-specific extensions. A recording still needs to be
+made in the participant's own voice.

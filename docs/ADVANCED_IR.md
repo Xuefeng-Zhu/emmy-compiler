@@ -7,11 +7,23 @@ algorithms by public case name, and does not invoke Emmy rendering, nvcc or ptxa
 ## Shared scalar/control-flow layer
 
 `structured.py` implements static multidimensional Tile decoding, row-major
-addresses, grouped raster order (including a partial final group), Loop and
-StridedLoop, f32 Load/Write, Assign, Let, Init and Accum. Vector memory operations
+addresses, grouped raster order (including a partial final group), Loop,
+StridedLoop and Cond, f32 Load/Write, Assign, Let, Init and Accum. Vector memory operations
 are scalarized into consecutive cells with a proof that they do not cross a row.
 
-An accumulator belongs to its immediate reduction loop. A seeded loop initializes
+Scalar operations call `Emitter.emit_math`, shared with rank-1 pointwise lowering.
+This includes arithmetic, min/max, exp, tanh, sigmoid, SiLU, abs and GELU forms;
+see [NUMERICS.md](NUMERICS.md) for formulas and approximation choices.
+
+Cond supports integer comparisons and logical conjunction/disjunction with
+independent SSA scopes in each branch.
+A branch can update an already initialized carried accumulator; branch-local
+definitions do not escape it. Nested guards refine integer index bounds before
+memory access is checked. The output-coverage traversal evaluates the actual
+branch for each logical coordinate, preserving gap and duplicate-writer checks.
+
+An accumulator belongs to its enclosing reduction loop, including updates inside
+conditionals but excluding states carried by nested loops. A seeded loop initializes
 all its states before iteration; nested dot-product states reset each outer
 iteration, while outer softmax states persist. `seed=False` requires an existing
 initialized state. `Accum.base` replaces the prior operand with the named,
@@ -27,6 +39,14 @@ budget. Larger/irregular domains fail clearly instead of bypassing the check.
 
 This layer handles both official attention schedules, including multiple output
 cells per thread and grouped raster order. It does not generate tensor-core code.
+Local regressions also execute guarded 256-key attention and smaller rectangular
+variants against numerical oracles. A 256-query/256-key, depth-32, output-width-32
+variant is checked for compilation; it has no full numerical or GPU result.
+Separate freshly materialized graphs also compile under emission-order and
+offline greedy schedules for that shape, a `(96, 200, 32, 72)` attention shape
+and an irregular `(5, 9, 7, 11)` shape. The latter's greedy schedule has 12 real
+compound-predicate Cond nodes and passes the PTX numerical model. See the
+[current local evidence](STATUS.md#shape-and-operation-generalization).
 
 ## Fused row reductions
 
@@ -66,7 +86,9 @@ a uniform positive contribution count, a zeroing contract, and no mixed writers.
 
 These checks are not a complete proof of arbitrary shared-memory race freedom.
 Current support excludes swizzled copies, grouped shared-memory raster schedules,
-partial CTAs, named/count-limited barriers and arbitrary asynchronous programs.
+partial CTAs, named/count-limited barriers, conditional shared-memory schedules
+and arbitrary asynchronous programs. The contraction emitter rejects Cond;
+structured attention has no shared-memory barrier contract and supports it.
 The independent CPU model checks actual public copy queues, initialization,
 visibility, ring reuse and output contributions. It does not establish hardware
 ordering or assembler acceptance.

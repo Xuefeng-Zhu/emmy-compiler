@@ -157,6 +157,9 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
                 assign(args[0], value(args[1], mask), mask)
             elif opcode == 'mov.f32':
                 assign(args[0], np.asarray(value(args[1], mask), np.float32), mask)
+            elif opcode in ('and.pred', 'or.pred'):
+                operation = np.logical_and if opcode == 'and.pred' else np.logical_or
+                assign(args[0], operation(value(args[1], mask), value(args[2], mask)), mask)
             elif opcode == 'ld.global.f32':
                 assign(args[0], memory(address(args[1], mask), mask), mask)
             elif opcode == 'st.global.f32':
@@ -185,9 +188,12 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
                     zero = np.where(negative, np.float32(-0.0), np.float32(0.0))
                     result = np.where((a == 0) & (b == 0), zero, result)
                 assign(args[0], np.asarray(result, np.float32), mask)
-            elif opcode in ('sqrt.rn.f32', 'ex2.approx.f32', 'rcp.rn.f32'):
+            elif opcode == 'copysign.f32':
+                assign(args[0], np.copysign(value(args[2], mask), value(args[1], mask)), mask)
+            elif opcode in ('sqrt.rn.f32', 'ex2.approx.f32', 'rcp.rn.f32', 'abs.f32', 'neg.f32'):
                 a = np.asarray(value(args[1], mask), np.float32)
-                fn = {'sqrt.rn.f32':np.sqrt, 'ex2.approx.f32':np.exp2, 'rcp.rn.f32':np.reciprocal}[opcode]
+                fn = {'sqrt.rn.f32':np.sqrt, 'ex2.approx.f32':np.exp2, 'rcp.rn.f32':np.reciprocal,
+                      'abs.f32':np.abs, 'neg.f32':np.negative}[opcode]
                 assign(args[0], np.asarray(fn(a), np.float32), mask)
             elif re.fullmatch(r'(add|sub|mul\.lo|mul\.wide|mad\.lo|div|rem|min|max|and|shr)\.(u32|s32|u64|b32)', opcode):
                 op, dtype = opcode.rsplit('.', 1)
