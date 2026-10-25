@@ -1,0 +1,129 @@
+{
+  "date_utc": "2026-10-25",
+  "validation": "local static emission and cooperative CPU model only",
+  "source_commit_before_slice": "c5fa2801b2138be3b2967e3c7fa70d2c2620c850",
+  "upstream_commit": "ec8cde1943f88efea3827a95bda6085553d2d407",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/reduction-local-tests.txt 2>&1",
+  "tests": 85,
+  "seconds": 8.122,
+  "exit_code": 0,
+  "reference_files_verified": 36,
+  "pointwise_ptx_hashes": "all four unchanged from GPU receipts",
+  "remote_requests": 0,
+  "cases": [
+    {
+      "problem": "r01_array_sum",
+      "ptx_sha256": "fbc54348423e2facc883f82c99a10798df55bac87fddc023ca6627e77073ec3a",
+      "ptx_bytes": 2325,
+      "expected": -50.37076187133789,
+      "cpu_model_actual": -50.370765686035156,
+      "max_absolute_error": 3.814697265625e-06,
+      "rtol": 0.0001,
+      "atol": 0.0001,
+      "equal_nan": false,
+      "every_input_read_once": true,
+      "output_store_counts": [
+        1
+      ],
+      "block_barrier_rendezvous": 3,
+      "assembly": "not run",
+      "gpu": "not run",
+      "proposed_launch": {
+        "node": "sum_1",
+        "entry": "k_sum_1_reduce",
+        "arg_order": [
+          "x",
+          "sum_1"
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "block": [
+          128,
+          1,
+          1
+        ],
+        "smem_bytes": 0,
+        "zero_outputs": [],
+        "args": [
+          {
+            "name": "x",
+            "dtype": "f32",
+            "shape": [
+              1024
+            ],
+            "seed": 0
+          },
+          {
+            "name": "sum_1",
+            "dtype": "f32",
+            "shape": [
+              1
+            ],
+            "output": true
+          }
+        ],
+        "final": true
+      }
+    },
+    {
+      "problem": "r02_big_sum",
+      "ptx_sha256": "ad52fac82b3be39cf0d22253cfb09d20b78ca16457cd4d9a0b46f58a332bf541",
+      "ptx_bytes": 2326,
+      "expected": 159.73731994628906,
+      "cpu_model_actual": 159.7373046875,
+      "max_absolute_error": 1.52587890625e-05,
+      "rtol": 0.001,
+      "atol": 0.001,
+      "equal_nan": false,
+      "every_input_read_once": true,
+      "output_store_counts": [
+        1
+      ],
+      "block_barrier_rendezvous": 3,
+      "assembly": "not run",
+      "gpu": "not run",
+      "proposed_launch": {
+        "node": "sum_1",
+        "entry": "k_sum_1_reduce",
+        "arg_order": [
+          "x",
+          "sum_1"
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "block": [
+          128,
+          1,
+          1
+        ],
+        "smem_bytes": 0,
+        "zero_outputs": [],
+        "args": [
+          {
+            "name": "x",
+            "dtype": "f32",
+            "shape": [
+              65536
+            ],
+            "seed": 0
+          },
+          {
+            "name": "sum_1",
+            "dtype": "f32",
+            "shape": [
+              1
+            ],
+            "output": true
+          }
+        ],
+        "final": true
+      }
+    }
+  ]
+}

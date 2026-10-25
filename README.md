@@ -4,10 +4,12 @@ An independent, local Python compiler for the RiftStack Emmy Hackathon 2026.
 It reads Emmy Kernel IR with `emmy-ml==0.3.11` and emits PTX using our own lowering.
 The current slice handles one-dimensional, statically sized f32 addition,
 multiplication and ReLU, with runtime constant buffers. All four official
-pointwise cases (`p00` through `p03`) compile locally.
+pointwise cases (`p00` through `p03`) compile locally. A validated single-block
+f32 sum path also compiles `r01` and `r02`, including rank-0 result buffers.
 
 **Status: all four public pointwise cases passed official PTX assembly, GPU
-execution and expected-array comparison; 67 local tests pass.**
+execution and expected-array comparison; 85 local tests pass. r01/r02 have
+local PTX generation and cooperative CPU-model checks only.**
 The GPU runs cover the supplied finite inputs. Exceptional-input behavior and
 hidden variants are not validated; the CPU model remains a test helper.
 This is an initial working slice, not a completed competition MVP. See
@@ -75,8 +77,10 @@ JSON upload service or a security sandbox.
 - `compile.py`: command-line entry point.
 - `emmy_ptx/loader.py`: official IR deserialization and launch/ABI validation.
 - `emmy_ptx/ptx.py`: typed statement walk, virtual registers and direct PTX emission.
-- `tests/`: parser/ABI/CLI regressions, pointwise structure checks and a small CPU
-  model for numeric and address-flow tests; no GPU or runner calls.
+- `emmy_ptx/reduction.py`: validated cooperative sum plan and direct PTX emission.
+- `tests/`: parser/ABI/CLI regressions, numeric/address-flow models, shuffle/barrier
+  checks and mocked transport tests; no GPU or runner calls.
+- `docs/REDUCTIONS.md`: reduction topology, synchronization and local evidence.
 - `docs/NUMERICS.md`: rounding, ReLU exceptional values and the reference discrepancy.
 - `tools/fetch_reference.py`: immutable public reference downloads.
 - `tools/run_official.py`: bounded wrapper around the reviewed official runner client;
@@ -92,5 +96,6 @@ performance benchmarks. The [private source repository](https://github.com/Xuefe
 was updated through commit `519fc60`. The subsequent p02/p03 runner results and
 wrapper adaptation remain local and unpushed.
 
-Next implementation, if requested: the first general reductions for r01/r02.
-Reduction coverage, hidden-set validation and competition submission remain pending.
+Local implementation is continuing through mean and row sum, then the remaining
+public categories. New GPU validation, hidden-set validation and competition
+submission remain pending. Local continuation does not authorize new uploads.

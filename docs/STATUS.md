@@ -4,12 +4,38 @@ Checkpoint: October 25, 2026 (UTC).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
 **All four public pointwise cases passed PTX assembly, RTX 5090 execution and
-official expected-array comparison. 67 local tests pass.**
+official expected-array comparison. The latest local suite has 85 tests.**
 
 p02/p03 each passed once with max absolute error 0 and client/wrapper exit 0.
 Their single-launch timings were 14.976/15.328 microseconds, not benchmarks. No
 compiler fixes or retries were needed. These results apply to the supplied finite
 arrays; exceptional-input semantics and hidden variants remain unverified.
+
+## Current local reduction checkpoint
+
+Reusable single-block f32 sum lowering now covers r01/r02. It supports rank-0
+outputs through the official pointer ABI, lengths derived from IR, full-warp
+blocks from 32 to 1024 threads, idle lanes/tails and unique shared-memory writers.
+All four pointwise PTX artifacts remain byte-identical to their GPU-tested hashes.
+
+Command: `PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/reduction-local-tests.txt 2>&1`.
+Result: **85 tests in 8.122 seconds, OK; exit 0**. All 36 immutable reference files
+verified offline. [Test log](validation/2026-10-25/reduction-local-tests.txt),
+[result record](validation/2026-10-25/reduction-local-results.json), and
+[reduction scope](REDUCTIONS.md). The model also rejects missing synchronization,
+uninitialized shared reads, incomplete participation, shared write races and
+unknown instructions. It is not an assembler or GPU emulator.
+
+| Case | Local CLI / cooperative CPU model | NVIDIA assembly / GPU |
+| --- | --- | --- |
+| r01_array_sum | Pass; max absolute error 3.814697265625e-6 | Not run |
+| r02_big_sum | Pass; max absolute error 1.52587890625e-5 | Not run |
+| r03_mean, r04_row_sum | Next local slice | Not run |
+
+The following sections retain historical pointwise checkpoints and their exact
+commands. Current coverage is four public GPU cases plus two local-only cases,
+not a completed eight-problem MVP. Local implementation is continuing; new GPU
+uploads and pushes need separate authorization.
 
 ## Delivered in this local extension
 
@@ -32,7 +58,8 @@ arrays; exceptional-input semantics and hidden variants remain unverified.
 | p01_vector_add | Exit 0 | Passed | Prior PASS, RTX 5090 |
 | p02_scale_shift | Exit 0 | Passed, rtol/atol 1e-6 | PASS, RTX 5090 |
 | p03_relu_mul | Exit 0 | Passed, rtol/atol 0 | PASS, RTX 5090 |
-| r01–r04 reductions | Unsupported | Not run | Not run |
+| r01/r02 reductions | Exit 0 | Passed, original tolerances | Not run |
+| r03/r04 reductions | Pending implementation | Not run | Not run |
 
 The official basic scope is eight problems: four pointwise plus four reductions.
 This is not yet the competition MVP. There are 15 public problems overall.
@@ -106,18 +133,18 @@ The Mac has no NVIDIA GPU or ptxas. CPython 3.12.12 and the 37 pinned dependenci
 remain isolated in `.python/` and `.venv312/`; the optional runner environment is
 separate. The project-local runtime avoids the existing Homebrew SQLite issue.
 
-Only static one-dimensional f32 buffers and one ordinary Tile are supported.
-Rank-0 buffers, other types, partial grouped tails, control flow, reductions,
-shared-memory synchronization and cooperative scheduling remain explicit errors.
+Pointwise support remains static one-dimensional f32 buffers and one ordinary
+Tile. The new single-CTA f32 sum topology additionally supports rank-0 outputs,
+strided accumulation, shuffles and synchronized shared storage. Other reduction
+topologies and shapes remain explicit errors at this checkpoint.
 The NaN conflict between the official expected-generation function and CUDA
 reference is recorded in [NUMERICS.md](NUMERICS.md). The current official checker
 also rejects NaN/NaN. Hidden exceptional-input requirements remain unresolved;
 this is not a claim of universal f32 support. Deserialization accepts trusted
 IR only.
 
-Next implementation, if requested: a general first reduction for r01/r02,
-including scalar result buffers, reduction loops/accumulators and the required
-shuffle/shared-memory synchronization. No reduction work was started here.
+Next local slice: r03 mean with its runtime divisor and r04 row sum. New reduction
+GPU uploads are pending separate approval; local work can proceed independently.
 
 ## Completed p02/p03 GPU payload
 

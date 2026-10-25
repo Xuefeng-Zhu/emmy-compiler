@@ -1,4 +1,4 @@
-# Pointwise numerical semantics
+# Numerical semantics
 
 All supported buffers and arithmetic are float32. The emitter follows explicit
 IR operation order and preserves intermediate rounding:
@@ -63,3 +63,15 @@ not assemble PTX, emulate all NVIDIA behavior or prove optimizer behavior. The
 p00–p03 GPU receipts cover only the supplied finite public arrays. Exceptional
 values, NaN policy and hidden variants remain outside that GPU evidence; the
 upstream semantic conflict above is not resolved by those passing runs.
+
+## Single-block sum
+
+Every lane starts at +0 and accumulates its strided inputs with `add.rn.f32`.
+Five XOR shuffle stages reduce each full warp; a halving shared-memory tree
+combines warp partials. Idle lanes contribute +0 and participate in every
+rendezvous. This follows the validated IR schedule rather than serial summation.
+The NumPy oracle accumulates at higher precision before conversion; different
+rounding order is expected and the original per-case tolerances are unchanged.
+The r01/r02 CPU-model errors are 3.814697265625e-6 and 1.52587890625e-5.
+No NVIDIA assembly or execution has been performed for these reductions.
+Subnormal and exceptional reduction behavior has not been established on GPU.
