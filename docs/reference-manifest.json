@@ -1,0 +1,58 @@
+{
+  "repository": "https://github.com/cloudrift-ai/emmy-hackathon-2026",
+  "commit": "ec8cde1943f88efea3827a95bda6085553d2d407",
+  "files": [
+    {
+      "path": "MVP.md",
+      "sha256": "d3aaf25b07ca247d44c37b8a8bb449d05cc4a84588ec5783203196c5ca8052ef"
+    },
+    {
+      "path": "README.md",
+      "sha256": "52d1584183493ed5d9fcb1e3caf8b994be396a355d215d0f253486c04b3bf53d"
+    },
+    {
+      "path": "TASK.md",
+      "sha256": "d10ec7823185cb96e5f9b42017726119500d0aba9f57b70a917e77392187967a"
+    },
+    {
+      "path": "docs/API.md",
+      "sha256": "4f06c036db20787b82337dc69b5eb002545065e65d0b33c2fe734adff5d58264"
+    },
+    {
+      "path": "problems/PROVENANCE.md",
+      "sha256": "00286c27d72167005d1f9f6284ffbf581773aeac03093d6bc65fdc1391c9ed6e"
+    },
+    {
+      "path": "problems/p00_scalar_add/k_add_pointwise.ir.json",
+      "sha256": "d93c0b232c48f7161c88f0276ea8a69481b06608a24b6e8ed2d5025bd17f4e32"
+    },
+    {
+      "path": "problems/p00_scalar_add/k_add_pointwise.ir.txt",
+      "sha256": "407816ed4ff2692dc2c9d344d25247ebee052dd1b7e676050e28599799fd8f94"
+    },
+    {
+      "path": "problems/p00_scalar_add/k_add_pointwise.ref.cu",
+      "sha256": "3bdf3210e610d6d15bb7d9020b70f86a87ec5924ba54e94e6b40fd9c7c55c32d"
+    },
+    {
+      "path": "problems/p00_scalar_add/meta.json",
+      "sha256": "67f4c80a5c78c9fa571f4088633acc56cae0a758d2a65e7c89c07a96e665709c"
+    },
+    {
+      "path": "problems/p01_vector_add/k_add_pointwise.ir.json",
+      "sha256": "90088bc4c7346b9a5916205fdb96926f52cc0f5e3c5c08527d7b0796b0c47fc5"
+    },
+    {
+      "path": "problems/p01_vector_add/k_add_pointwise.ir.txt",
+      "sha256": "da8cb2eca84364a2de8261d008b2bf5f477f25e29d15bcdbf8b9cbfb17fdcc80"
+    },
+    {
+      "path": "problems/p01_vector_add/k_add_pointwise.ref.cu",
+      "sha256": "7ed88ceaf0fd79b7043e648e45637dcf5cd3e20db23ece5285ea45ee7b7259ea"
+    },
+    {
+      "path": "problems/p01_vector_add/meta.json",
+      "sha256": "4607a6a14553ec256b2073ff8fef18a850e315033f4fdace21f26fdcc2a867c6"
+    }
+  ]
+}

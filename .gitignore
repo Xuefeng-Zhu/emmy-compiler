@@ -1,0 +1,8 @@
+.venv*/
+.python/
+.reference/
+__pycache__/
+*.py[cod]
+.DS_Store
+build/
+.coverage

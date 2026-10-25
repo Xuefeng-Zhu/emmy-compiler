@@ -1,0 +1,2 @@
+# Primary dependency; use requirements.lock for the validated full environment.
+emmy-ml==0.3.11
