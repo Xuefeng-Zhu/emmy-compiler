@@ -1,75 +1,54 @@
-# 四分钟讲解提纲
+# A 3–5 minute own-voice walkthrough
 
-目标是让评委看清「IR 语义怎样变成 PTX」与「并行调度怎样保证正确」。
-讲解围绕一条数据流展开，无需依次介绍每个文件。以下是提纲，由参赛者用自己的
-语言和声音录制。
+Aim for about four minutes. Use this as a route through the project, not a script
+to read verbatim. Adapt the phrasing to what you can explain comfortably. Do not
+claim to have personally designed or discovered something unless that is true.
+The final recording should use your own voice and understanding.
 
-## 0:00–0:35：输入与输出
+Keep the [offline field guide](explainer/index.html),
+[learning guide](LEARNING_GUIDE.md) and [results](RUNNER_RESULTS.md) ready. Avoid
+launching new remote GPU jobs during recording; existing receipts are enough to
+show what was tested.
 
-展示一份 Kernel IR 和旁边的 `meta.json`，再展示生成的 PTX。
+| Time | Show | Explain in your own words |
+| --- | --- | --- |
+| 0:00–0:35 | Pipeline diagram and sample IR/metadata | The input is scheduled Emmy Kernel IR. Emmy deserializes it; this project's own checks and lowering produce PTX. Metadata supplies ordered pointers and launch geometry. |
+| 0:35–1:25 | Trace steps 2–6, then thread 9 and idle thread 10 | How one thread obtains an index, checks its bound, computes byte addresses, adds in f32 and writes once. Why an output-ownership proof matters as well as bounds checks. |
+| 1:25–2:10 | Reduction diagram in the learning guide | Private partials, 32-lane shuffle, shared partials and block barriers. An idle lane still participates in the cooperative reduction. This is different from an independent pointwise early return. |
+| 2:10–2:45 | Choose attention **or** matmul | Attention: inner state resets while outer softmax state survives and is rescaled. Matmul: async-copy waits and barriers protect shared reads; split-K output starts at zero before launch. |
+| 2:45–3:35 | Exp chart, witness button, error-budget view | The preserved failure had 251 out-of-tolerance values. Range reduction reduced this to zero on the same synthetic sample and tolerance. Distinguish the GPU curve from the CPU arithmetic illustration. |
+| 3:35–4:10 | Evidence table and exact CI run | Public GPU evidence covers 15 artifacts. CPU tests, PTX hashes and GPU receipts answer different questions. Timings are single-shot; hidden and exceptional-value coverage remains bounded. |
 
-- Emmy 负责把 JSON 解析成类型化的 IR 节点。
-- 我们负责验证参数、维度和启动契约，然后直接生成 PTX。
-- 参数顺序和 grid/block 来自 metadata；算子、索引和循环来自 IR。
+For a three-minute version, omit the advanced example and shorten the exp
+explanation. For a five-minute version, inspect one relevant source function and
+one rejected-input test. Do not try to describe every file.
 
-屏幕上运行：
+## Optional local terminal demonstration
+
+From the repository root with the documented environment installed:
 
 ```sh
-python compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > /tmp/emmy-demo.ptx
+.venv/bin/python compile.py docs/explainer/sample/learn_add.ir.json > /tmp/learn_add.ptx
+cmp /tmp/learn_add.ptx docs/explainer/sample/learn_add.ptx
+.venv/bin/python tools/check_docs.py
 ```
 
-## 0:35–1:25：先讲共同的 emitter
+This compiles an original teaching example and checks documentation. It does not
+assemble or execute PTX on a GPU. If you show the full suite, run it before the
+recording and display its actual completed output and commit, rather than waiting
+through the whole run on camera.
 
-沿着 `Load → Assign → Write` 跟踪一个值：
+## Questions worth being able to answer
 
-1. `Load` 把有界的多维索引展平，计算字节地址，把数据放入 f32 寄存器。
-2. `Assign` 根据算子的语义发出 PTX；中间结果保持显式 f32 运算顺序。
-3. `Write` 存结果，另一个检查证明输出没有漏写或重复写入。
+- Why are all parameters pointers, including a one-element scalar result?
+- Why is a pointwise tail guard safe while a reduction lane cannot skip a barrier?
+- What comes from the input schedule, and what does this compiler implement?
+- Why can a CPU exp model pass while approximate GPU instructions differ?
+- Which result is a measurement, which is a model, and which is still untested?
 
-接着展示一个改 shape 或组合算子的本地回归。解释共用的寄存器分配、算术、
-地址与循环逻辑，让同类新输入能复用相同的节点处理。
+Use precise, ordinary claims: “This recorded artifact passed these inputs,” or
+“The current code rejects this unsupported schedule.” Avoid “all f32 is correct,”
+“the hidden tests pass,” or “the fastest kernel” without supporting evidence.
 
-## 1:25–2:15：再讲并行调度的扩展
-
-画一行数据被线程分段处理的示意图，解释 reduction：
-
-- 每条 lane 执行 `tid + k × block_size` 对应的 Load/Assign/Accum。
-- 没有数据的 lane 保留该 reduction 的 identity，仍参加 shuffle 和 barrier。
-- warp 内先合并，每个 warp 的一个线程写 shared partial，再进行跨 warp 合并。
-- 每个 CTA 对应一行，最后只有指定线程写输出。
-
-共同 emitter 处理数学操作；调度层处理哪个线程执行、怎样通信和同步。
-backend dispatch 检查这些 IR 调度节点，不根据题目文件名选择答案。
-
-## 2:15–2:55：选择一个进阶例子
-
-可从以下两项中选自己最熟悉的一项深入讲，避免在短视频里逐文件罗列。
-
-- **Attention**：内层 dot-product state 每轮重置，外层在线 softmax state
-  跨轮保留；`Cond` 用整数比较决定执行哪条分支，各分支有独立 SSA 作用域，
-  同时可更新外部已初始化的 accumulator。guard 收窄索引边界，输出覆盖检查
-  也跟随实际分支。展示 guarded 256-key 或较小矩形数值回归；完整 256×256、
-  depth/output width 32 的新增用例目前只验证编译。
-- **Matmul**：async copy 把数据搬进 shared memory；等待和 barrier 保证读取
-  时数据可见；split-K 的 atomic output 依赖 metadata 的预先清零契约。
-
-## 2:55–3:40：展示证据
-
-先展示 [`RUNNER_RESULTS.md`](RUNNER_RESULTS.md) 的五类结果：公开题目 15/15
-通过官方汇编、RTX 5090 执行和原始容差下的数组比较。
-
-再展示本地测试命令和变形测试：改维度、改算子组合、改参数顺序，并保留非法 IR
-必须报错的用例。CPU instruction model 用来检查数据流、地址、累加器生命周期和
-同步；GPU receipts 记录实际汇编及执行结果。
-
-可以用 m01 的一次汇编失败说明验证的价值：external shared declaration 原来位于
-entry 内，修正到 module scope 后官方 runner 通过，失败和成功回执都保留。
-
-## 3:40–4:00：收束
-
-回到开头的数据流：类型化 IR、统一的 scalar emitter、调度扩展、PTX。
-用一句话说明证据范围：15 个公开 fixture 有 GPU receipts，新增 shape/op 的结果
-以本地回归记录为准。计时只有单次运行，不把它当性能基准。
-
-录制前用当前 checkout 跑本地 suite，并选择已经通过的变形测试作演示；测试数量
-和新增能力应以这次实际输出为准。
+Recording and final submission remain user-owned steps. This documentation does
+not create a recording, publish a video or submit a competition entry.

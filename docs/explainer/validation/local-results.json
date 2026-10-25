@@ -1,0 +1,44 @@
+{
+  "date_utc": "2026-10-25",
+  "production_source_baseline": "cc4c27c5156e71acf95b6ae9a27af561c6428f3c",
+  "environment": "macOS, existing pinned Python 3.12.12 venv",
+  "commands": [
+    {
+      "command": ".venv312/bin/python -B tools/run_tests.py",
+      "tests": 243,
+      "seconds": 145.868,
+      "exit_code": 0
+    },
+    {
+      "command": ".venv312/bin/python -B tools/build_explainer.py --check",
+      "artifacts_verified": 5,
+      "exit_code": 0
+    },
+    {
+      "command": ".venv312/bin/python -B tools/check_docs.py",
+      "markdown_documents": 18,
+      "links": 264,
+      "exit_code": 0
+    },
+    {
+      "command": ".venv312/bin/python -B tools/check_cli.py",
+      "official_ptx_hashes_matched": 15,
+      "invalid_inputs_checked": 2,
+      "exit_code": 0
+    }
+  ],
+  "source_sha256": {
+    "compile.py": "6566ea6ceee78c90ec1f6fe263618c0deaca950ae8ab82a92093919f050d252d",
+    "emmy_ptx/__init__.py": "409d745f3e51e8f98afa8caa914dab182f6c0bf05ecdb40b065a1ac50677024c",
+    "emmy_ptx/cooperative.py": "a2548df7fe9a0c1902808ccf8adb6a7fa65044eb90a0a9a195229fcbdeedb1f8",
+    "emmy_ptx/errors.py": "2f1df9615e967fda28aba8aa45be98b2193182282257457b314395f0fc06fb54",
+    "emmy_ptx/loader.py": "03262725c29e163315fabbe7a322ea49446ec758601fd1a9b6bee98dd59257c1",
+    "emmy_ptx/matmul.py": "1b347373ab0449c5ad7b8fe2190b9e9e1e5c9728674cbda33d4599c185eca1d5",
+    "emmy_ptx/ptx.py": "e2771010b5e507c47cbca8c4c9dd0359b784316b5e902e0ccc8025d5c1d7fa1f",
+    "emmy_ptx/reduction.py": "79610ff87ef66ebe1519f383bab83233ea867f2a431fd7eccf832566b66ae2d5",
+    "emmy_ptx/structured.py": "c30c2a3b672bad626de1d9b03e1081a4edc46a6e3a808cce92545f9bb13d252e"
+  },
+  "sample_ptx_sha256": "8c3160867886f71f7fdc4f450b1435c075cf07070b82ec528c25c7f030d9d15b",
+  "local_test_log_sha256": "7daf0b24e6290ce51256457e1e10851c12157a9f334b6fc1761d227757c9b99c",
+  "new_gpu_requests": 0
+}

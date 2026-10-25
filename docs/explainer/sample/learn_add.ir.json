@@ -1,0 +1,63 @@
+{
+  "inputs": [
+    "left",
+    "right"
+  ],
+  "outputs": [
+    "result"
+  ],
+  "nodes": {
+    "left": {
+      "op": "InputOp",
+      "op_fields": {},
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "left",
+          "shape": [
+            10
+          ],
+          "dtype": "f32"
+        }
+      ]
+    },
+    "right": {
+      "op": "InputOp",
+      "op_fields": {},
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "right",
+          "shape": [
+            10
+          ],
+          "dtype": "f32"
+        }
+      ]
+    },
+    "result": {
+      "op": "KernelOp",
+      "op_fields": {
+        "name": "learn_add",
+        "body": [
+          "Tile(axes=(Axis(name='i', extent=Dim(10), window=None),), body=(Load(names=('a',), input='left', index=(Var(name='i'),), dtype=DataType(name='f32', np=dtype('float32'), nbytes=4)), Load(names=('b',), input='right', index=(Var(name='i'),), dtype=DataType(name='f32', np=dtype('float32'), nbytes=4)), Assign(name='c', op=ElementwiseImpl('add'), args=('a', 'b'), dtype=DataType(name='f32', np=dtype('float32'), nbytes=4)), Write(output='result', index=(Var(name='i'),), values=('c',), value_dtype=DataType(name='f32', np=dtype('float32'), nbytes=4), atomic=False, swizzle='NONE')), block_threads=None, aux_threads=0, raster_axes=None, raster_group=None, raster_orient='m')"
+        ],
+        "zero_delegated": [],
+        "serial": []
+      },
+      "inputs": [
+        "left",
+        "right"
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "shape": [
+            10
+          ],
+          "dtype": "f32"
+        }
+      ]
+    }
+  }
+}

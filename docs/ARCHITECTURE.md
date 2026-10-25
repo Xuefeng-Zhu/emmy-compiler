@@ -1,5 +1,9 @@
 # Architecture and supported scope
 
+New to the project? Begin with the [engineer’s learning guide](LEARNING_GUIDE.md)
+and [interactive field guide](explainer/index.html). This page records the detailed
+implementation contract.
+
 The pipeline is `trusted JSON + meta.json -> Emmy typed graph -> validated kernel
 contract -> our PTX emitter -> stdout`. Emmy supplies deserialization and typed
 objects only. No Emmy renderer, nvcc or other lowering backend is invoked.

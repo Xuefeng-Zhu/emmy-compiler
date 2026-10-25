@@ -14,9 +14,22 @@ and **14/14 fresh GPU checks**. The three changed public artifacts (f02/a01/a02)
 passed again; the other twelve public PTX artifacts are byte-identical to their
 GPU-passed versions.
 
-The current [CPU CI/reproduction checks](docs/CI.md) add 18 integrity and failure-
+The initial [CPU CI/reproduction checks](docs/CI.md) added 18 integrity and failure-
 propagation tests: **240 local tests pass** in a fresh Python 3.12.12 environment.
-The compiler and previously validated PTX are unchanged.
+The learning material adds three checks, bringing the local suite to **243 passing
+tests**. The compiler and previously validated PTX are unchanged.
+
+## Learn the compiler
+
+Start with the [engineering walkthrough](docs/LEARNING_GUIDE.md), or open the
+[offline interactive field guide](docs/explainer/index.html) in a browser after
+cloning/downloading the repository. Step through real generated PTX, inspect
+thread ownership, and explore the saved exp GPU error data. GitHub displays the
+HTML source; this project does not deploy a website.
+
+Use the [3–5 minute own-voice outline](docs/WALKTHROUGH.md) to prepare a video.
+The [explainer notes](docs/explainer/README.md) cover provenance, regeneration,
+accessibility, screenshots and exact validation commands.
 
 ## Setup
 

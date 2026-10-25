@@ -95,8 +95,10 @@ ordering or assembler acceptance.
 
 ## Numerical and hardware limits
 
-Natural exponential is emitted as explicit f32 multiplication by log2(e), then
-`ex2.approx.f32`. CPU models use mathematical float32 exp2 and cannot reproduce
+Natural exponential uses the shared split-ln(2) range-reduction sequence, with
+explicit f32 rounding, approximate exp2 on the small residual and two normal
+scale factors. See [the exp investigation](EXP_ACCURACY_FIX.md) for the preserved
+failure and correction. CPU models use mathematical float32 exp2 and cannot reproduce
 the GPU instruction's approximation error. Maximum identity follows the pinned
 Emmy operation (`-1e30`), not a substituted mathematical negative infinity.
 Global f32 atomic add flushes subnormal inputs/results, unlike ordinary scalar

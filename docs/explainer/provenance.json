@@ -1,0 +1,36 @@
+{
+  "description": "Original educational sample plus archived synthetic exp GPU measurements. No official reference arrays.",
+  "source_sha256": {
+    "compile.py": "6566ea6ceee78c90ec1f6fe263618c0deaca950ae8ab82a92093919f050d252d",
+    "emmy_ptx/__init__.py": "409d745f3e51e8f98afa8caa914dab182f6c0bf05ecdb40b065a1ac50677024c",
+    "emmy_ptx/cooperative.py": "a2548df7fe9a0c1902808ccf8adb6a7fa65044eb90a0a9a195229fcbdeedb1f8",
+    "emmy_ptx/errors.py": "2f1df9615e967fda28aba8aa45be98b2193182282257457b314395f0fc06fb54",
+    "emmy_ptx/loader.py": "03262725c29e163315fabbe7a322ea49446ec758601fd1a9b6bee98dd59257c1",
+    "emmy_ptx/matmul.py": "1b347373ab0449c5ad7b8fe2190b9e9e1e5c9728674cbda33d4599c185eca1d5",
+    "emmy_ptx/ptx.py": "e2771010b5e507c47cbca8c4c9dd0359b784316b5e902e0ccc8025d5c1d7fa1f",
+    "emmy_ptx/reduction.py": "79610ff87ef66ebe1519f383bab83233ea867f2a431fd7eccf832566b66ae2d5",
+    "emmy_ptx/structured.py": "c30c2a3b672bad626de1d9b03e1081a4edc46a6e3a808cce92545f9bb13d252e"
+  },
+  "evidence_sha256": {
+    "docs/validation/2026-10-25-regression/synthetic/s15_exp_wide_4097/expected.npz": "987faca27b25358d64fe4b8f4e075c051d3531d380fc38d055859c58c60f3fee",
+    "docs/validation/2026-10-25-regression/synthetic/s15_exp_wide_4097/run-01-output.npy": "03adc373c6c40688f2fc641987e6de660652aff3f106c41684e4130db8d6c1a0",
+    "docs/validation/2026-10-25-regression/synthetic/s15_exp_wide_4097/report.json": "9ed5e49779ff464d19f1e522caf1bdb4011c081664eaa5783c712832b130c1ed",
+    "docs/validation/2026-10-25-regression/synthetic/s15_exp_wide_4097/kernel.ptx": "88d38e7e42a18c623aa30e4e59d1f21d254b645b28799fbc9039778665934ed1",
+    "docs/validation/2026-10-25-exp-fix/synthetic/s15_exp_wide_4097/expected.npz": "987faca27b25358d64fe4b8f4e075c051d3531d380fc38d055859c58c60f3fee",
+    "docs/validation/2026-10-25-exp-fix/synthetic/s15_exp_wide_4097/run-01-output.npy": "47e631130618480b873762d7a09f6fb72a32bf61a8b747ac22a7e52ae4ffaea6",
+    "docs/validation/2026-10-25-exp-fix/synthetic/s15_exp_wide_4097/report.json": "72e725fc9c484353d5e7c2f77ff3ea8cc340e25782fc16acf33732955ffb74e5",
+    "docs/validation/2026-10-25-exp-fix/synthetic/s15_exp_wide_4097/kernel.ptx": "4a9225e2ee48952928ed720355cdca9836b35ba1216890dbac8eb89a32e03f16"
+  },
+  "sample_ptx_sha256": "8c3160867886f71f7fdc4f450b1435c075cf07070b82ec528c25c7f030d9d15b",
+  "exp_samples": 4097,
+  "exp_failures": [
+    251,
+    0
+  ],
+  "generated_sha256": {
+    "index.html": "97df5bad0bd2716cbefd739f9a4f34f25dbae88b64f4382b9ca23745d906e5b6",
+    "sample/learn_add.ir.json": "b0ab01f457f6af51025d9079fe012001cf083b996449ab3359859d4fab8599ec",
+    "sample/meta.json": "9a6d83730114acc680136c499ee1399f852f3851cbe14d04d98974acf166cee7",
+    "sample/learn_add.ptx": "8c3160867886f71f7fdc4f450b1435c075cf07070b82ec528c25c7f030d9d15b"
+  }
+}

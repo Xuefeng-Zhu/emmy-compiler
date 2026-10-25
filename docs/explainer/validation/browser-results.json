@@ -1,0 +1,53 @@
+{
+  "checks": [
+    "all six trace stages and keyboard navigation",
+    "idle/active mapping and keyboard activation",
+    "range keyboard boundaries, witness and both measured chart modes",
+    "reduced-motion preference; offline controls; no subresource requests or JS errors"
+  ],
+  "widths": [
+    {
+      "width": 1440,
+      "scroll": 1440,
+      "chartWidth": 1156,
+      "paths": true
+    },
+    {
+      "width": 768,
+      "scroll": 768,
+      "chartWidth": 728,
+      "paths": true
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "chartWidth": 332,
+      "paths": true
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "chartWidth": 292,
+      "paths": true
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:8769/index.html"
+  ],
+  "measurements": {
+    "count": 4097,
+    "failures": [
+      251,
+      0
+    ],
+    "lines": 2
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "date_utc": "2026-10-25",
+  "method": "Isolated existing Chrome session via installed Playwright CLI; loopback HTTP followed by disabled network.",
+  "screenshots_sha256": {
+    "emmy-exp-desktop.png": "eebba37dd54f808259cf956c025f2a733f34479edd75ee1440677dda8f48fc01",
+    "emmy-threads-mobile.png": "f02defb4552d75673f0d3d8fea755705de6935332edc11fd48cd8297639d0de7",
+    "emmy-trace-desktop.png": "3bc2c64c14c6259fb3b241697faf8434aa3c310589d8189903977f7215e40992"
+  }
+}
