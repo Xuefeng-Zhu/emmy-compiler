@@ -75,4 +75,6 @@ JSON upload service or a security sandbox.
 
 Next step: review the generated PTX and, after authorization for runner use,
 assemble and execute p00/p01 on the official runner. Then extend pointwise
-coverage before tackling reductions. No remote or published repository is set up.
+coverage before tackling reductions. The source mirror is the private repository
+[Xuefeng-Zhu/emmy-compiler](https://github.com/Xuefeng-Zhu/emmy-compiler).
+Official GPU validation and competition submission remain pending.
