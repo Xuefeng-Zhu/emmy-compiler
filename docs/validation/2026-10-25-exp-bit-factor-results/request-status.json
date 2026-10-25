@@ -1,0 +1,39 @@
+{
+  "admission_execution_completion": "Unknown; unresolved. No claim that the request never ran or is no longer active.",
+  "candidate_and_current_large_exp_runs_sent": false,
+  "case": "s_exp_262145",
+  "client_error": "ConnectionError",
+  "compile_acknowledged": true,
+  "current_public_api_docs_rechecked_identical": true,
+  "documented_routes": [
+    "GET /health",
+    "POST /compile",
+    "POST /run"
+  ],
+  "historical_counts": {
+    "compile_success_responses": 57,
+    "completed_timing_requests": 90,
+    "run_success_responses": 146,
+    "uncertain_run_requests": 1
+  },
+  "http_run_response_received": false,
+  "no_cancellation_claim": true,
+  "no_speculative_status_endpoint_queries": true,
+  "official_api_docs_sha256": "4f06c036db20787b82337dc69b5eb002545065e65d0b33c2fe734adff5d58264",
+  "official_api_documentation": "https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/docs/API.md",
+  "operation": "POST /run on the official Emmy runner",
+  "other_users_jobs_queried": false,
+  "publication_gpu_requests": 0,
+  "publication_redactions": [
+    "All compiled-binary handles",
+    "All raw request/response bodies and request hashes",
+    "All server/private paths and local absolute paths",
+    "All official or synthetic input/output arrays",
+    "All generated PTX files"
+  ],
+  "reason_unresolved": "No response or server-issued launch/request token was received. The documented API and pinned client define no read-only per-request lookup. Health, later independent successes, and the documented 20-second limit do not establish this request's admission, execution or terminal state.",
+  "run_retried": false,
+  "supported_read_only_status_result_lookup_found": false,
+  "that_workload_timings_sent": false,
+  "variant": "old_simple_exp"
+}

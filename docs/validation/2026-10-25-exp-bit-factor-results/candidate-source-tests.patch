@@ -1,0 +1,288 @@
+diff --git a/emmy_ptx/ptx.py b/emmy_ptx/ptx.py
+index f863f3d..9f82f3d 100644
+--- a/emmy_ptx/ptx.py
++++ b/emmy_ptx/ptx.py
+@@ -111,2 +111,3 @@ class Emitter:
+-            # Two normal scales avoid premature overflow/underflow in 2**n.
+-            # Integer ex2 results are still approximate under the PTX contract.
++            # Both split exponents are in [-75,64], so (k+127)<<23 encodes
++            # exact normal powers of two. Keep the split and product order:
++            # only the final product may become subnormal or overflow.
+@@ -117,2 +118,8 @@ class Emitter:
+-            self.put(f'ex2.approx.f32 {first}, {half};')
+-            self.put(f'ex2.approx.f32 {second}, {remainder};')
++            for scale, power in ((first, half), (second, remainder)):
++                bits = self.reg('r')
++                # NaN converts to zero for s32; the fractional path remains
++                # NaN, so finite scale bits do not change NaN propagation.
++                self.put(f'cvt.rzi.s32.f32 {bits}, {power};')
++                self.put(f'add.s32 {bits}, {bits}, 127;')
++                self.put(f'shl.b32 {bits}, {bits}, 23;')
++                self.put(f'mov.b32 {scale}, {bits};')
+diff --git a/tests/matmul_model.py b/tests/matmul_model.py
+index 8c18e4c..9860ed0 100644
+--- a/tests/matmul_model.py
++++ b/tests/matmul_model.py
+@@ -44,0 +45,6 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++    register_types = {}
++    for dtype, prefix, length in re.findall(r'\.reg\s+\.(\w+)\s+(%\w+)(?:<(\d+)>)?\s*;', ptx):
++        if length:
++            register_types.update((prefix + str(i), dtype) for i in range(int(length)))
++        else:
++            register_types[prefix] = dtype
+@@ -250 +256 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
+-            elif opcode in ('mov.u32', 'mov.s32', 'mov.u64', 'mov.b32', 'cvta.to.global.u64'):
++            elif opcode in ('mov.u32', 'mov.s32', 'mov.u64', 'cvta.to.global.u64'):
+@@ -251,0 +258,7 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++            elif opcode == 'mov.b32':
++                # PTX mov.b32 copies bits; it is never a numeric int/float cast.
++                source = np.asarray(value(args[1], mask))
++                bits = (source.astype(np.float32).view(np.uint32) if source.dtype.kind == 'f'
++                        else (source.astype(np.int64) & 0xffffffff).astype(np.uint32))
++                result = bits.view(np.float32) if register_types.get(args[0]) == 'f32' else bits
++                assign(args[0], result, mask)
+@@ -332,0 +346,11 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++            elif opcode in ('cvt.rni.f32.f32', 'cvt.rzi.f32.f32'):
++                operation = np.rint if opcode == 'cvt.rni.f32.f32' else np.trunc
++                source = np.asarray(value(args[1], mask), np.float32)
++                assign(args[0], np.asarray(operation(source), np.float32), mask)
++            elif opcode == 'cvt.rzi.s32.f32':
++                # PTX f32-to-s32 truncates and clamps; NaN converts to zero.
++                # Widen before clamping so INT_MAX does not round to 2**31.
++                source = np.asarray(value(args[1], mask), np.float32).astype(np.float64)
++                source = np.nan_to_num(source, nan=0, posinf=2**31 - 1, neginf=-(2**31))
++                result = np.clip(np.trunc(source), -(2**31), 2**31 - 1).astype(np.int64)
++                assign(args[0], result, mask)
+@@ -337 +361 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
+-            elif re.fullmatch(r'(add|sub|mul\.lo|mul\.wide|mad\.lo|div|rem|min|max|and|shr)\.(u32|s32|u64|b32)', opcode):
++            elif re.fullmatch(r'(add|sub|mul\.lo|mul\.wide|mad\.lo|div|rem|min|max|and|shl|shr)\.(u32|s32|u64|b32)', opcode):
+@@ -352,0 +377 @@ def run_matmul_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++                elif op == 'shl': result = (a & 0xffffffff) << np.minimum(b & 0xffffffff, 32)
+diff --git a/tests/reduction_model.py b/tests/reduction_model.py
+index a9c0900..29d75bd 100644
+--- a/tests/reduction_model.py
++++ b/tests/reduction_model.py
+@@ -157,6 +157,4 @@ def run_reduction_ptx(ptx, launch, overrides=None):
+-                if register_types.get(args[0]) == 'f32':
+-                    reg[args[0]] = np.uint32(int(source) & 0xffffffff).view(np.float32)
+-                elif isinstance(source, np.floating):
+-                    reg[args[0]] = int(np.float32(source).view(np.uint32))
+-                else:
+-                    reg[args[0]] = int(source) & 0xffffffff
++                bits = (int(np.float32(source).view(np.uint32)) if isinstance(source, np.floating)
++                        else int(source) & 0xffffffff)
++                reg[args[0]] = (np.uint32(bits).view(np.float32)
++                                if register_types.get(args[0]) == 'f32' else bits)
+@@ -186 +184 @@ def run_reduction_ptx(ptx, launch, overrides=None):
+-            elif opcode in ('and.b32', 'shr.u32'):
++            elif opcode in ('and.b32', 'shl.b32', 'shr.u32'):
+@@ -188 +186,7 @@ def run_reduction_ptx(ptx, launch, overrides=None):
+-                reg[args[0]] = (a & b) if opcode == 'and.b32' else (a & 0xffffffff) >> b
++                if opcode == 'and.b32':
++                    result = a & b
++                elif opcode == 'shl.b32':
++                    result = (a & 0xffffffff) << min(b & 0xffffffff, 32)
++                else:
++                    result = (a & 0xffffffff) >> b
++                reg[args[0]] = result & 0xffffffff
+@@ -250,0 +255,5 @@ def run_reduction_ptx(ptx, launch, overrides=None):
++            elif opcode == 'cvt.rzi.s32.f32':
++                source = float(np.float32(value(tid, args[1])))
++                # PTX float-to-integer conversion clamps overflow, NaN -> 0.
++                result = 0 if np.isnan(source) else int(np.trunc(min(max(source, -(2**31)), 2**31 - 1)))
++                reg[args[0]] = result & 0xffffffff
+diff --git a/tests/structured_model.py b/tests/structured_model.py
+index fc9d9c7..318495a 100644
+--- a/tests/structured_model.py
++++ b/tests/structured_model.py
+@@ -35,0 +36,6 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++    register_types = {}
++    for dtype, prefix, length in re.findall(r'\.reg\s+\.(\w+)\s+(%\w+)(?:<(\d+)>)?\s*;', ptx):
++        if length:
++            register_types.update((prefix + str(i), dtype) for i in range(int(length)))
++        else:
++            register_types[prefix] = dtype
+@@ -156 +162 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
+-            elif opcode in ('mov.u32', 'mov.s32', 'mov.u64', 'mov.b32', 'cvta.to.global.u64'):
++            elif opcode in ('mov.u32', 'mov.s32', 'mov.u64', 'cvta.to.global.u64'):
+@@ -157,0 +164,7 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++            elif opcode == 'mov.b32':
++                # PTX mov.b32 copies bits; it is never a numeric int/float cast.
++                source = np.asarray(value(args[1], mask))
++                bits = (source.astype(np.float32).view(np.uint32) if source.dtype.kind == 'f'
++                        else (source.astype(np.int64) & 0xffffffff).astype(np.uint32))
++                result = bits.view(np.float32) if register_types.get(args[0]) == 'f32' else bits
++                assign(args[0], result, mask)
+@@ -198,0 +212,7 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++            elif opcode == 'cvt.rzi.s32.f32':
++                # PTX f32-to-s32 truncates and clamps; NaN converts to zero.
++                # Widen before clamping so INT_MAX does not round to 2**31.
++                source = np.asarray(value(args[1], mask), np.float32).astype(np.float64)
++                source = np.nan_to_num(source, nan=0, posinf=2**31 - 1, neginf=-(2**31))
++                result = np.clip(np.trunc(source), -(2**31), 2**31 - 1).astype(np.int64)
++                assign(args[0], result, mask)
+@@ -206 +226 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
+-            elif re.fullmatch(r'(add|sub|mul\.lo|mul\.wide|mad\.lo|div|rem|min|max|and|shr)\.(u32|s32|u64|b32)', opcode):
++            elif re.fullmatch(r'(add|sub|mul\.lo|mul\.wide|mad\.lo|div|rem|min|max|and|shl|shr)\.(u32|s32|u64|b32)', opcode):
+@@ -221,0 +242 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
++                elif op == 'shl': result = (a & 0xffffffff) << np.minimum(b & 0xffffffff, 32)
+diff --git a/tests/test_exp_bit_factors.py b/tests/test_exp_bit_factors.py
+new file mode 100644
+index 0000000..6ee11b2
+--- /dev/null
++++ b/tests/test_exp_bit_factors.py
+@@ -0,0 +1,102 @@
++"""Independent PTX operand probes for exact exp scale construction.
++
++These CPU models check bits and operand flow, not NVIDIA approximation error,
++assembly or timing. The numeric exp tests retain their existing tolerances.
++"""
++import math
++import unittest
++
++import numpy as np
++
++from emmy_ptx.ptx import Emitter
++from matmul_model import run_matmul_ptx
++from reduction_model import run_reduction_ptx
++from structured_model import run_structured_ptx
++from test_float_rounding_model import launch, probe
++
++
++MODELS = (run_structured_ptx, run_reduction_ptx, run_matmul_ptx)
++
++
++def bit_probe(instructions):
++    return (probe(instructions).replace('.reg .b32 %r<1>;', '.reg .b32 %r<5>;')
++            .replace('.reg .f32 %f<4>;', '.reg .f32 %f<6>;\n    .shared .align 4 .b8 scratch[4];'))
++
++
++class ExactExpScaleModelTests(unittest.TestCase):
++    def check_bits(self, instructions, values, expected_bits):
++        expected_bits = np.asarray(expected_bits, np.uint32)
++        for model in MODELS:
++            with self.subTest(model=model.__name__):
++                actual = model(bit_probe(instructions), launch(values)).outputs['result']
++                np.testing.assert_array_equal(actual[:len(expected_bits)].view(np.uint32), expected_bits)
++
++    def test_signed_conversion_truncates_both_signs_and_handles_special_values(self):
++        smallest = np.array([1], np.uint32).view(np.float32)[0]
++        values = [-75.9, -1.9, -0.9, -0.0, 0.0, 0.9, 1.9, 64.9,
++                  -smallest, smallest, np.nan, -np.nan, -np.inf, np.inf,
++                  -(2**31), 2**31, np.finfo(np.float32).max, -np.finfo(np.float32).max]
++        integers = [-75, -1, 0, 0, 0, 0, 1, 64, 0, 0, 0, 0,
++                    -(2**31), 2**31 - 1, -(2**31), 2**31 - 1,
++                    2**31 - 1, -(2**31)]
++        self.check_bits('cvt.rzi.s32.f32 %r1, %f0;\n    mov.b32 %f1, %r1;',
++                        values, [v & 0xffffffff for v in integers])
++
++    def test_bit_moves_preserve_float_bits_in_both_directions(self):
++        bits = np.array([0x00000000, 0x80000000, 0x00000001, 0x007fffff,
++                         0x00800000, 0x3f800000, 0xc2960000, 0x7f800000,
++                         0xff800000, 0x7fc12345], np.uint32)
++        self.check_bits('mov.b32 %r1, %f0;\n    mov.b32 %f2, %r1;\n    mov.b32 %f1, %f2;',
++                        bits.view(np.float32), bits)
++
++    def test_shift_drops_overflow_and_clamps_32_bit_shift_amount(self):
++        for amount, expected in [(0, 0xffffffff), (23, 0xff800000), (31, 0x80000000),
++                                 (32, 0), (33, 0), (0xffffffff, 0)]:
++            with self.subTest(amount=amount):
++                self.check_bits(f'mov.u32 %r1, 4294967295;\n    shl.b32 %r2, %r1, {amount};\n    mov.b32 %f1, %r2;',
++                                [0], [expected])
++
++    def test_every_scale_exponent_produces_exact_normal_power_of_two(self):
++        # Independent IEEE values computed via exact binary scaling, covering
++        # every integer exponent admitted by either half of the clamped exp.
++        for start in range(-75, 65, 32):
++            values = list(range(start, min(start + 32, 65)))
++            expected = np.array([math.ldexp(1.0, k) for k in values], np.float32)
++            self.check_bits('cvt.rzi.s32.f32 %r1, %f0;\n    add.s32 %r2, %r1, 127;\n'
++                            '    shl.b32 %r3, %r2, 23;\n    mov.b32 %f1, %r3;',
++                            values, expected.view(np.uint32))
++            self.assertTrue(np.all((expected >= np.finfo(np.float32).tiny) & np.isfinite(expected)))
++
++    def test_final_multiply_keeps_subnormal_rounding_and_overflow(self):
++        # Each operand is normal. Only the final product crosses a boundary.
++        # 2^-150 ties to zero; the next f32 partial above one rounds to 2^-149.
++        lower = ('mul.rn.f32 %f2, %f0, 0f1a000000;\n'
++                 '    mul.rn.f32 %f1, %f2, 0f1a000000;')  # both 2^-75
++        self.check_bits(lower, [1.0, np.nextafter(np.float32(1), np.float32(2)), 2.0],
++                        [0, 1, 1])
++        upper = ('mul.rn.f32 %f2, %f0, 0f5f800000;\n'
++                 '    mul.rn.f32 %f1, %f2, 0f5f800000;')  # both 2^64
++        self.check_bits(upper, [0.5, 1.0], [0x7f000000, 0x7f800000])
++
++    def test_emitter_retains_clamps_reduction_and_separate_product_order(self):
++        emitter = Emitter(None)
++        emitter.emit_math('exp', ['%input'])
++        lines = [line.strip() for line in emitter.lines]
++        self.assertEqual(len(lines), 23)
++        self.assertEqual(sum(line.startswith('ex2.approx.f32 ') for line in lines), 1)
++        self.assertEqual(sum(line.startswith('cvt.rzi.s32.f32 ') for line in lines), 2)
++        self.assertEqual(sum(line.startswith('mov.b32 ') for line in lines), 2)
++        self.assertTrue(lines[0].startswith('max.NaN.f32 '))
++        self.assertTrue(lines[1].startswith('min.NaN.f32 '))
++        self.assertTrue(any('0f3f317200' in line for line in lines))
++        self.assertTrue(any('0f35bfbe8e' in line for line in lines))
++        self.assertFalse(any('.ftz' in line or 'fma.' in line for line in lines))
++        scales = [line.split()[1].rstrip(',') for line in lines if line.startswith('mov.b32 ')]
++        self.assertTrue(lines[-2].endswith(', ' + scales[0] + ';'))
++        self.assertTrue(lines[-1].endswith(', ' + scales[1] + ';'))
++        intermediate = lines[-2].split()[1].rstrip(',')
++        self.assertIn(', ' + intermediate + ', ', lines[-1])
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/test_exp_emitted.py b/tests/test_exp_emitted.py
+index 5333bd2..67410cf 100644
+--- a/tests/test_exp_emitted.py
++++ b/tests/test_exp_emitted.py
+@@ -6,0 +7 @@ NaNs; exceptional classification has a separate explicit test.
++from dataclasses import replace
+@@ -10,0 +12,3 @@ import numpy as np
++from emmy.compiler.graph import Graph
++from emmy.compiler.ir.elementwise import ElementwiseImpl
++from emmy.compiler.ir.stmt.leaves import Assign
+@@ -13 +17 @@ from structured_model import run_structured_ptx
+-from test_numeric import compile_fixture, scalar_fixture
++from test_numeric import compile_fixture, fixture, scalar_fixture
+@@ -42,0 +47,4 @@ class RangeReducedExpModelTests(unittest.TestCase):
++        self.check_exp_result(actual, values)
++        return actual
++
++    def check_exp_result(self, actual, values):
+@@ -50 +58,25 @@ class RangeReducedExpModelTests(unittest.TestCase):
+-        return actual
++        # Original atol would hide inaccurate tiny outputs. Keep that check
++        # and additionally constrain normal relative and subnormal bit error.
++        normal = finite & (expected >= np.finfo(np.float32).tiny)
++        np.testing.assert_allclose(actual[normal], expected[normal],
++                                   rtol=2e-6, atol=0, equal_nan=False)
++        subnormal = (expected > 0) & (expected < np.finfo(np.float32).tiny)
++        distances = np.abs(actual[subnormal].view(np.uint32).astype(np.int64) -
++                           expected[subnormal].view(np.uint32).astype(np.int64))
++        self.assertTrue(np.all(distances <= 2), 'sampled subnormal error exceeds 2 ULP')
++
++    def test_vector_pointwise_exp_retains_each_lane_and_boundary_classification(self):
++        raw, meta = fixture('p01_vector_add')
++        tile = Graph.from_dict(raw).nodes['add'].op.body[0]
++        tile = replace(tile, body=tuple(replace(statement, op=ElementwiseImpl('exp'),
++                                               args=(statement.args[0],))
++                                         if isinstance(statement, Assign) else statement
++                                         for statement in tile.body))
++        raw['nodes']['add']['op_fields']['body'] = [repr(tile)]
++        size = meta['kernels'][0]['args'][0]['shape'][0]
++        values = np.linspace(-104, 89, size, dtype=np.float32)
++        ptx = compile_fixture(raw, meta)
++        self.assertEqual(ptx.count('ex2.approx.f32 '), 2)
++        result = run_structured_ptx(ptx, meta['kernels'][0], {'x0': values})
++        self.check_exp_result(result.outputs['add'], values)
++        np.testing.assert_array_equal(result.store_counts['add'], np.ones(size))
+diff --git a/tests/test_float_rounding_model.py b/tests/test_float_rounding_model.py
+index 1c53edc..f07436a 100644
+--- a/tests/test_float_rounding_model.py
++++ b/tests/test_float_rounding_model.py
+@@ -139 +139 @@ class FloatIntegralConversionModelTests(unittest.TestCase):
+-                           'cvt.rni.ftz.f32.f32', 'cvt.rzi.s32.f32'):
++                           'cvt.rni.ftz.f32.f32', 'cvt.rzi.s32.f64'):

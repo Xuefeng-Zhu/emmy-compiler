@@ -1,0 +1,373 @@
+{
+  "cases": [
+    {
+      "candidate_current_ratio_by_round": [
+        1.0,
+        1.0067567567567568,
+        0.9866666666666667,
+        1.0,
+        1.0,
+        1.0136054421768708
+      ],
+      "case": "f02_row_softmax",
+      "median_candidate_current_ratio": 1.0,
+      "variants": {
+        "candidate": {
+          "iqr_of_medians_us": 0.03200000000000003,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 4.768,
+          "median_us": 4.752,
+          "min_us": 4.736,
+          "n_medians": 6,
+          "request_medians_us": [
+            4.736,
+            4.768,
+            4.736,
+            4.768,
+            4.736,
+            4.768
+          ],
+          "sample_sd_of_medians_us": 0.017527121840165333
+        },
+        "current": {
+          "iqr_of_medians_us": 0.02400000000000002,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 4.8,
+          "median_us": 4.736,
+          "min_us": 4.704,
+          "n_medians": 6,
+          "request_medians_us": [
+            4.736,
+            4.736,
+            4.8,
+            4.768,
+            4.736,
+            4.704
+          ],
+          "sample_sd_of_medians_us": 0.033049457887636656
+        },
+        "old": {
+          "iqr_of_medians_us": 0.03200000000000003,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 3.104,
+          "median_us": 3.024,
+          "min_us": 3.008,
+          "n_medians": 6,
+          "request_medians_us": [
+            3.04,
+            3.008,
+            3.04,
+            3.008,
+            3.008,
+            3.104
+          ],
+          "sample_sd_of_medians_us": 0.03740944622240042
+        }
+      }
+    },
+    {
+      "candidate_current_ratio_by_round": [
+        0.9995142093757591,
+        0.9995143273433704,
+        0.9995144452537024,
+        0.9995144452537024,
+        0.9997571046878795,
+        0.9992716678805535
+      ],
+      "case": "a01_attention",
+      "median_candidate_current_ratio": 0.9995143862985364,
+      "variants": {
+        "candidate": {
+          "iqr_of_medians_us": 0.02400000000000091,
+          "mad_of_medians_us": 0.015999999999991132,
+          "max_us": 131.744,
+          "median_us": 131.712,
+          "min_us": 131.68,
+          "n_medians": 6,
+          "request_medians_us": [
+            131.68,
+            131.712,
+            131.744,
+            131.744,
+            131.712,
+            131.712
+          ],
+          "sample_sd_of_medians_us": 0.024088724886689828
+        },
+        "current": {
+          "iqr_of_medians_us": 0.055999999999983174,
+          "mad_of_medians_us": 0.015999999999991132,
+          "max_us": 131.808,
+          "median_us": 131.792,
+          "min_us": 131.744,
+          "n_medians": 6,
+          "request_medians_us": [
+            131.744,
+            131.776,
+            131.808,
+            131.808,
+            131.744,
+            131.808
+          ],
+          "sample_sd_of_medians_us": 0.031462146568001656
+        },
+        "old": {
+          "iqr_of_medians_us": 0.055999999999997385,
+          "mad_of_medians_us": 0.016000000000005343,
+          "max_us": 99.008,
+          "median_us": 98.99199999999999,
+          "min_us": 98.944,
+          "n_medians": 6,
+          "request_medians_us": [
+            98.944,
+            99.008,
+            98.976,
+            99.008,
+            98.944,
+            99.008
+          ],
+          "sample_sd_of_medians_us": 0.031462146568002135
+        }
+      }
+    },
+    {
+      "candidate_current_ratio_by_round": [
+        1.0007326007326007,
+        1.002199413489736,
+        1.0,
+        1.0,
+        1.0007326007326007,
+        1.0153846153846153
+      ],
+      "case": "a02_attention_128",
+      "median_candidate_current_ratio": 1.0007326007326007,
+      "variants": {
+        "candidate": {
+          "iqr_of_medians_us": 0.02400000000000091,
+          "mad_of_medians_us": 0.0,
+          "max_us": 44.352,
+          "median_us": 43.712,
+          "min_us": 43.712,
+          "n_medians": 6,
+          "request_medians_us": [
+            43.712,
+            43.744,
+            43.712,
+            43.712,
+            43.712,
+            44.352
+          ],
+          "sample_sd_of_medians_us": 0.2589826248998159
+        },
+        "current": {
+          "iqr_of_medians_us": 0.02400000000000091,
+          "mad_of_medians_us": 0.015999999999998238,
+          "max_us": 43.712,
+          "median_us": 43.68,
+          "min_us": 43.648,
+          "n_medians": 6,
+          "request_medians_us": [
+            43.68,
+            43.648,
+            43.712,
+            43.712,
+            43.68,
+            43.68
+          ],
+          "sample_sd_of_medians_us": 0.024088724886691084
+        },
+        "old": {
+          "iqr_of_medians_us": 0.02400000000000091,
+          "mad_of_medians_us": 0.0,
+          "max_us": 39.616,
+          "median_us": 39.584,
+          "min_us": 39.584,
+          "n_medians": 6,
+          "request_medians_us": [
+            39.584,
+            39.584,
+            39.616,
+            39.584,
+            39.616,
+            39.584
+          ],
+          "sample_sd_of_medians_us": 0.016524728943816493
+        }
+      }
+    },
+    {
+      "candidate_current_ratio_by_round": [
+        1.0,
+        1.0003780718336484,
+        1.0,
+        0.9996220710506425,
+        0.9996220710506425,
+        1.0003780718336484
+      ],
+      "case": "s_a_attn_256",
+      "median_candidate_current_ratio": 1.0,
+      "variants": {
+        "candidate": {
+          "iqr_of_medians_us": 0.031999999999996476,
+          "mad_of_medians_us": 0.015999999999998238,
+          "max_us": 84.672,
+          "median_us": 84.656,
+          "min_us": 84.608,
+          "n_medians": 6,
+          "request_medians_us": [
+            84.608,
+            84.672,
+            84.672,
+            84.64,
+            84.64,
+            84.672
+          ],
+          "sample_sd_of_medians_us": 0.026127890589684354
+        },
+        "current": {
+          "iqr_of_medians_us": 0.031999999999996476,
+          "mad_of_medians_us": 0.015999999999998238,
+          "max_us": 84.672,
+          "median_us": 84.656,
+          "min_us": 84.608,
+          "n_medians": 6,
+          "request_medians_us": [
+            84.608,
+            84.64,
+            84.672,
+            84.672,
+            84.672,
+            84.64
+          ],
+          "sample_sd_of_medians_us": 0.026127890589684354
+        },
+        "old": {
+          "iqr_of_medians_us": 0.02400000000001512,
+          "mad_of_medians_us": 0.0,
+          "max_us": 76.48,
+          "median_us": 76.448,
+          "min_us": 76.448,
+          "n_medians": 6,
+          "request_medians_us": [
+            76.48,
+            76.448,
+            76.448,
+            76.448,
+            76.448,
+            76.48
+          ],
+          "sample_sd_of_medians_us": 0.01652472894382383
+        }
+      }
+    },
+    {
+      "candidate_current_ratio_by_round": [
+        0.9953051643192489,
+        0.9906542056074766,
+        1.0,
+        1.009433962264151,
+        1.0,
+        1.0
+      ],
+      "case": "s_f_softmax_7x1025",
+      "median_candidate_current_ratio": 1.0,
+      "variants": {
+        "candidate": {
+          "iqr_of_medians_us": 0.05600000000000005,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 6.848,
+          "median_us": 6.832,
+          "min_us": 6.784,
+          "n_medians": 6,
+          "request_medians_us": [
+            6.784,
+            6.784,
+            6.848,
+            6.848,
+            6.848,
+            6.816
+          ],
+          "sample_sd_of_medians_us": 0.03146214656800563
+        },
+        "current": {
+          "iqr_of_medians_us": 0.03200000000000003,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 6.848,
+          "median_us": 6.832,
+          "min_us": 6.784,
+          "n_medians": 6,
+          "request_medians_us": [
+            6.816,
+            6.848,
+            6.848,
+            6.784,
+            6.848,
+            6.816
+          ],
+          "sample_sd_of_medians_us": 0.026127890589687255
+        },
+        "old": {
+          "iqr_of_medians_us": 0.03200000000000003,
+          "mad_of_medians_us": 0.016000000000000014,
+          "max_us": 4.8,
+          "median_us": 4.784,
+          "min_us": 4.768,
+          "n_medians": 6,
+          "request_medians_us": [
+            4.768,
+            4.768,
+            4.8,
+            4.8,
+            4.8,
+            4.768
+          ],
+          "sample_sd_of_medians_us": 0.017527121840165333
+        }
+      }
+    }
+  ],
+  "completed_timed_iterations": 2790,
+  "completed_timing_requests": 90,
+  "completed_warmup_iterations": 450,
+  "confidence_interval": null,
+  "confidence_limit": "Only six request medians per variant are retained, no individual iteration observations or clocks. Dispersion below describes request medians only; no confidence interval or independent-sample inference is claimed.",
+  "orders": [
+    [
+      "old",
+      "current",
+      "candidate"
+    ],
+    [
+      "old",
+      "candidate",
+      "current"
+    ],
+    [
+      "current",
+      "old",
+      "candidate"
+    ],
+    [
+      "current",
+      "candidate",
+      "old"
+    ],
+    [
+      "candidate",
+      "old",
+      "current"
+    ],
+    [
+      "candidate",
+      "current",
+      "old"
+    ]
+  ],
+  "requests_per_variant_per_case": 6,
+  "scope": "Descriptive aggregate timings only; no official input/output arrays, launch payloads or access identifiers.",
+  "timed_iterations_per_request": 31,
+  "timed_iterations_per_variant_per_case": 186,
+  "units": "microseconds",
+  "warmup_iterations_per_variant_per_case": 30,
+  "warmup_per_request": 5
+}

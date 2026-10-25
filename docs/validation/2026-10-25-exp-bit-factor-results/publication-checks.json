@@ -1,0 +1,40 @@
+{
+  "all_production_files_byte_identical_to_base": true,
+  "base_commit": "c5f9aa915846920b3b6b37ce3cde2b06f46e6fd0",
+  "candidate_explainer_regeneration_and_learning_tests": {
+    "elapsed_seconds": 0.357,
+    "exit_code": 0,
+    "passed": 3
+  },
+  "candidate_patch_focused_cpu_tests": {
+    "elapsed_seconds": 0.913,
+    "exit_code": 0,
+    "passed": 36
+  },
+  "candidate_patch_reproduces_exact_nine_source_hashes": true,
+  "ci_scope": "Workflow triggers on main pushes or pull requests, so an ordinary results-only branch push does not schedule CI; local applicable checks are recorded here.",
+  "credential_private_key_and_absolute_path_markers_found": 0,
+  "docs_link_check": "Passed: 19 Markdown documents and 272 links, plus source/heading anchors and offline HTML dependency checks.",
+  "file_sha256": {
+    "docs/EXP_BIT_FACTOR_RESULTS.md": "6f014fa4fefc5263ba98a623e88614cb0798eab313f630f43dd14f7d8b4c80e5",
+    "docs/validation/2026-10-25-exp-bit-factor-results/candidate-source-tests.patch": "707f48101ba0e9b9a20f3ce893191a719db2b26398923880db03aae148244cf6",
+    "docs/validation/2026-10-25-exp-bit-factor-results/correctness-summary.json": "d657690a9d149890c3472f88dbf0c21a2829fd5fc02b88ea749c5c989608e39f",
+    "docs/validation/2026-10-25-exp-bit-factor-results/make_exp_stress_fixtures.py": "565c29593f863345e6cc80d60ef6b6b0ff128646beeabe6b30d903fcc83148d1",
+    "docs/validation/2026-10-25-exp-bit-factor-results/request-status.json": "39dd7f08d47e7c3976f1fa40141b38c708c6e911d4a26f4054653d7e2f8a1c57",
+    "docs/validation/2026-10-25-exp-bit-factor-results/timing-statistics.json": "46f9bad8bac3bf6986bf4a981967e0d2337fcdc0b7c9d5fcfd039c8f01358f67"
+  },
+  "generated_ptx_files_published": 0,
+  "gpu_submission_or_contest_entry": false,
+  "maximum_support_file_bytes": 27729,
+  "new_gpu_requests_for_publication": 0,
+  "official_or_synthetic_input_output_arrays_published": 0,
+  "original_compiled_binary_handles_present": 0,
+  "original_compiled_binary_handles_scanned": 53,
+  "patch_check_passed": true,
+  "patch_format": "Zero-context Git patch; apply with --unidiff-zero at the stated base.",
+  "raw_runner_payloads_or_responses_published": 0,
+  "scope": "Only docs/ report, sanitized summaries, an unapplied candidate patch and a CPU-only fixture generator are added. No compiler implementation adoption.",
+  "status": "Reviewed results-only publication checks passed",
+  "synthetic_fixture_core_manifests_reproduced": 3,
+  "whitespace_diff_check_passed": true
+}
