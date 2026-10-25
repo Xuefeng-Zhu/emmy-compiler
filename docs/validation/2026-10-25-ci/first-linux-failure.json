@@ -1,0 +1,24 @@
+{
+  "run_id": 40224966839,
+  "url": "https://github.com/Xuefeng-Zhu/emmy-compiler/actions/runs/40224966839",
+  "head_sha": "e184e0ec30f3f302cd3832f02c8f5507dda2aa9f",
+  "conclusion": "failure",
+  "tests": {
+    "count": 240,
+    "seconds": 343.904,
+    "failures": 1,
+    "exit_code": 1
+  },
+  "failed_test": "test_numeric.NumericModelTests.test_relu_nan_zero_infinity_and_subnormal_semantics",
+  "mismatch": {
+    "input": "-0.0",
+    "actual_ptx_model_bits": "0x00000000",
+    "numpy_host_expected_bits": "0x80000000"
+  },
+  "diagnosis": "The test incorrectly treated host NumPy maximum zero-sign bits as portable. PTX specifies +0 > -0; the existing compiler and model are unchanged.",
+  "correction": "Compare host/official expression values exactly (signed zeros compare equal) and independently assert explicit PTX bit patterns, including multiplication-created negative zero.",
+  "original_failed_log_sha256": "d5bfaec9fb2c7fb7167179b3b181b98e5c42b0bb32e49fe53d9a681c529ef805",
+  "compiler_changed": false,
+  "tolerances_changed": false,
+  "gpu_requests": 0
+}

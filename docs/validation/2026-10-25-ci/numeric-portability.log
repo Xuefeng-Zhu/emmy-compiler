@@ -1,0 +1,16 @@
+test_constant_buffer_can_have_multiple_elements (test_numeric.NumericModelTests.test_constant_buffer_can_have_multiple_elements) ... ok
+test_constant_values_are_read_at_runtime_for_varied_shapes (test_numeric.NumericModelTests.test_constant_values_are_read_at_runtime_for_varied_shapes) ... ok
+test_four_official_problems_match_expected_in_cpu_model (test_numeric.NumericModelTests.test_four_official_problems_match_expected_in_cpu_model) ... ok
+test_model_rejects_unknown_instruction (test_numeric.NumericModelTests.test_model_rejects_unknown_instruction) ... ok
+test_multiply_add_remains_separately_rounded (test_numeric.NumericModelTests.test_multiply_add_remains_separately_rounded) ... ok
+test_multiply_rounding_and_special_values (test_numeric.NumericModelTests.test_multiply_rounding_and_special_values) ... ok
+test_odd_lengths_and_block_boundaries_in_cpu_model (test_numeric.NumericModelTests.test_odd_lengths_and_block_boundaries_in_cpu_model) ... ok
+test_official_comparator_nan_and_signed_zero_policy (test_numeric.NumericModelTests.test_official_comparator_nan_and_signed_zero_policy) ... ok
+test_parameter_reordering_preserves_computation (test_numeric.NumericModelTests.test_parameter_reordering_preserves_computation) ... ok
+test_relu_multiply_matches_expected_generation_expression (test_numeric.NumericModelTests.test_relu_multiply_matches_expected_generation_expression) ... ok
+test_relu_nan_zero_infinity_and_subnormal_semantics (test_numeric.NumericModelTests.test_relu_nan_zero_infinity_and_subnormal_semantics) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.397s
+
+OK

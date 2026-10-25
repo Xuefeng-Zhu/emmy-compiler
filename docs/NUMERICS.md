@@ -49,12 +49,21 @@ has been corrected; problem tolerances have not changed.
 
 Separately, the ReLU/multiply semantic test directly evaluates the official
 `np.maximum(x, 0) * y` expression for special values, comparing NaN classification
-and the bits of every non-NaN result. A semantic NaN match is not a runner PASS:
-the current official checker rejects NaN even against a NaN expectation. The
-ReLU-only test also checks the pinned Emmy host operation. In this environment,
-both map -0 to +0 before multiplication; multiplication can produce -0 again.
+and exact non-NaN values (signed zeros compare equal). The ReLU-only test checks
+the pinned Emmy host operation, which uses `np.maximum(0.0, x)`. Its zero-sign
+choice differed between our macOS arm64 and Linux x64 runs: the first Linux CI
+run returned -0 for the host ReLU of -0, while our PTX model returned +0.
+Host NumPy bits are therefore not used as a portable signed-zero oracle.
 
-Tests compare finite result bits (including signed zero), NaN classification,
+Independent explicit bit patterns still require the PTX result to be +0 for
+`max.NaN.f32 -0, +0`, following NVIDIA's rule that +0 > -0. The composed test
+also checks that multiplying this +0 by a negative operand produces -0. It
+retains bit checks for subnormals, normal values and infinity. This is a test
+oracle correction; emitted PTX, official tolerances and `equal_nan=False` are
+unchanged. A semantic NaN match is not a runner PASS: the official checker rejects
+NaN even against a NaN expectation.
+
+Tests compare PTX result bits (including signed zero), NaN classification,
 infinities and the smallest float32 subnormal. A separate-rounding witness uses
 `a = 1 + 2^-23`, `b = -1 + 2^-24`: float32 `a*b + a` produces approximately
 1.1920929e-7 with separate rounding, versus 5.960465e-8 when fused. The emitted

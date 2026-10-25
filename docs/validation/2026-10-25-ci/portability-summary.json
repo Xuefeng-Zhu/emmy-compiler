@@ -1,0 +1,61 @@
+{
+  "baseline_commit": "e184e0ec30f3f302cd3832f02c8f5507dda2aa9f",
+  "changed_executable_files": [
+    "tests/test_numeric.py"
+  ],
+  "compiler_and_cli_unchanged": true,
+  "environment": "same fresh isolated CPython3.12.12/macOS arm64 environment recorded in local-summary.json",
+  "files_sha256": {
+    "compile.py": "6566ea6ceee78c90ec1f6fe263618c0deaca950ae8ab82a92093919f050d252d",
+    "docs/reference-manifest.json": "4d91ee9e81a591b4b10e5f80c165a5626ef0f7cb09699e5c20e070b09a77fcb1",
+    "emmy_ptx/__init__.py": "409d745f3e51e8f98afa8caa914dab182f6c0bf05ecdb40b065a1ac50677024c",
+    "emmy_ptx/cooperative.py": "a2548df7fe9a0c1902808ccf8adb6a7fa65044eb90a0a9a195229fcbdeedb1f8",
+    "emmy_ptx/errors.py": "2f1df9615e967fda28aba8aa45be98b2193182282257457b314395f0fc06fb54",
+    "emmy_ptx/loader.py": "03262725c29e163315fabbe7a322ea49446ec758601fd1a9b6bee98dd59257c1",
+    "emmy_ptx/matmul.py": "1b347373ab0449c5ad7b8fe2190b9e9e1e5c9728674cbda33d4599c185eca1d5",
+    "emmy_ptx/ptx.py": "e2771010b5e507c47cbca8c4c9dd0359b784316b5e902e0ccc8025d5c1d7fa1f",
+    "emmy_ptx/reduction.py": "79610ff87ef66ebe1519f383bab83233ea867f2a431fd7eccf832566b66ae2d5",
+    "emmy_ptx/structured.py": "c30c2a3b672bad626de1d9b03e1081a4edc46a6e3a808cce92545f9bb13d252e",
+    "requirements.lock": "aef90732a9805b57a5b2e68ef4f72dc63d51ca73073d5cf433a9897ba082e1ef",
+    "tests/matmul_model.py": "fabd12a040de0129f5e3e421b5e698f038781e787916fda1303cec1f4acb49f4",
+    "tests/ptx_model.py": "f085a32ba55d75980fd4d7d6559423784b9bbd68d260967c59049a19564cbdc7",
+    "tests/reduction_model.py": "caa500f7a0a119b9e236a0ad54fe3f543d8c6d5a02cc0c69c22f6db3d2891060",
+    "tests/structured_model.py": "44c6a48d2cd2c2999918d87f8d9a80d331fee080c3703e07b76fa02f5138a685",
+    "tests/test_ci_tools.py": "49d9256d13ca2a209e4021e298aa085f093b883be60cb5ef4f83e0f3eb4ec173",
+    "tests/test_compiler.py": "4a6dcbcda1bac3843d227d7175e9263835257921054f1f02277e0a61950fcc4b",
+    "tests/test_conditionals.py": "7201e976777395b7a2b155b730988a883c068f946805d9839fc8fd64583ebd2b",
+    "tests/test_cooperative_model.py": "c482e68dff6ad7871b7cd8dd30ce53153d99977c77743d152c679e4259e8f5d8",
+    "tests/test_exp_emitted.py": "e670e2caa2203f2cb680ba1c76d7527ba118c833b77734e26c72c1ab267b2639",
+    "tests/test_extra_generalization.py": "0a160facf4f4095efbf3ae7ba5957dff9d69bd4ee48fada5f7c9c5493f2d11ec",
+    "tests/test_float_rounding_model.py": "51ef5ddd4c7ba666b45717575c67274cc9a329bbf15c0e98c650bdb7ef7fc47a",
+    "tests/test_fused.py": "34930e9550ada73df2ae9db1c16c1ee93eb2b5aba5cf0c5a044a4b987c0293c1",
+    "tests/test_matmul.py": "afd12edaecb6e74219200da0d753acdb2acdd4d262468de14c247c2d71ce8df4",
+    "tests/test_matmul_numeric.py": "946229b3ad4642d7c05ce5544de8689bc4ccbf2b192947f47b0632229f39c7db",
+    "tests/test_numeric.py": "16c6188e7cc5a072c788e5b06eddcb4f2889f834c761ae8712643ef3eb318802",
+    "tests/test_pointwise.py": "4005e5a2349820d4ce9d4c4d755d5a13707e2fe656b5b95fcf695a240333f3d4",
+    "tests/test_pointwise_extended.py": "c5eeab053ee9072270de51702bb4307416bca7e8951852a2cc6323634c4e16a2",
+    "tests/test_reduction.py": "6ab1ff01fd23aa6f78dec175875cb253eff16172aec87d1d459e53a1dd9234a8",
+    "tests/test_reduction_composed.py": "7a4265d3e9c70116d0e91a123cbcc1ba30152ee7b6afbef05c39b2de039759d5",
+    "tests/test_reduction_extended.py": "1a2d04622ca9103d72cd0116c780c73fe58bd3d703ba265e454ce68eee835b38",
+    "tests/test_reference.py": "2ef5db34fbb70dc0094fc649d62c0ad8f0521b13e5de02cfabe1320207232f43",
+    "tests/test_runner.py": "df8347085b71f0ad2b398cbc32d27fc3f46d149dc201aa8e4d7c98f3347212e5",
+    "tests/test_structured.py": "f7436320cc473cc5369b04ce6969f09377b3caafd6998d4527a0ac6fb7304e60",
+    "tests/test_synthetic_runner.py": "823342de77d34a0553e864e54297521de848183e9855e923c8dca97a58009469",
+    "tests/test_validation.py": "70bae0bafb1aeccdf2e5781cfda309116139cfd1c047f5d278e1bc39c18135d5",
+    "tools/check_cli.py": "46847241375704c345689f2ab5807a62301debb8ef4e0b26e8089d84122636b3",
+    "tools/fetch_reference.py": "e52693fcf126c2d47c6481dd7ec450e2bc5ea59813545e5d6f17643b9f83a015",
+    "tools/run_tests.py": "e00c55ebb09e6f40465a2f1bc5b96f7132d9cbff547523c343eb9ec9c1b55b9f"
+  },
+  "focused": {
+    "count": 11,
+    "exit_code": 0,
+    "seconds": 0.397
+  },
+  "gpu_requests": 0,
+  "tests": {
+    "count": 240,
+    "exit_code": 0,
+    "seconds": 149.698,
+    "skipped": 0
+  }
+}

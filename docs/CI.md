@@ -63,6 +63,30 @@ GPU-validated artifacts byte for byte. No GPU requests were made.
 The corresponding GitHub Actions run is authoritative for Linux validation;
 a local macOS pass alone is not a remote CI pass.
 
+## First Linux run and portable zero expectations
+
+[Run 40224966839](https://github.com/Xuefeng-Zhu/emmy-compiler/actions/runs/40224966839)
+installed the same 37 dependency versions, passed `pip check`, and verified all
+82 reference files. It then failed one of 240 tests (343.904 seconds), correctly
+returning exit 1 and skipping the subsequent CLI step. The failing host ReLU
+comparison expected negative-zero bits on Linux where macOS had returned
+positive zero. This is retained in
+[the failure record](validation/2026-10-25-ci/first-linux-failure.json) and
+[sanitized excerpt](validation/2026-10-25-ci/first-linux-failure.txt).
+
+The corrected test compares host/official expression values exactly and checks
+PTX signed-zero behavior against independent explicit bit patterns. PTX defines
++0 as greater than -0 for `max`; ordinary numeric comparisons consider the two
+zeros equal. Both ReLU and ReLU/multiply tests retain strict bit assertions,
+including negative zero created by multiplication. No compiler code or official
+tolerance changed. See [numerical semantics](NUMERICS.md).
+
+After the test-only correction, the same isolated environment passed **240
+tests in 149.698 seconds (exit 0)**; the focused numeric suite passed 11 tests
+in 0.397 seconds. [Post-correction evidence](validation/2026-10-25-ci/portability-summary.json)
+preserves the final test-source hash and full local logs. The Linux rerun is a
+separate Actions result for the correction commit.
+
 ## Maintenance
 
 Update dependency versions or action pins deliberately and rerun the same

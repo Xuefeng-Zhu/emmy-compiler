@@ -1,8 +1,13 @@
 {
   "cli.log": "1eb5ae4c77b9cdbd6b92e4137129839b4269695a3d46b1efee92537c3823621c",
   "fetch.log": "8d8cdbe12de85a9fcc7f18e77dab1b08fc1ffd46d2f336abfe433550e73aa42b",
+  "first-linux-failure.json": "9cd38d280d9b8b4227041e0c3983fc398a680a3c23e5acfce9f0f3aea4dce31e",
+  "first-linux-failure.txt": "6b5b69299e6ba36399d3945a4cf27f978bf18c1cda960b2d682ed484956ad8d1",
   "install.log": "083ae1cc13c218477d0d5c22231daa9d8938b1379a88312ee3ae19e73d488335",
   "installed.txt": "91c5ddd8b730e9303594f8e0d01b787e4381618c3ccc5698227c61d4d2872463",
   "local-summary.json": "68d2581a17eeaed3baaa8a5a0d5677c540225a5f855306b77edcde04694c5a8e",
-  "local-tests.log": "04f492bb081b247e8bd217d961abfca1bdc0eac8d18ab8cfb5e1e70b08df8748"
+  "local-tests-portability.log": "42d58431fb29d06e9bbf83a5432ccd0266b07c3c29f12ebc0a19d1958f798c0f",
+  "local-tests.log": "04f492bb081b247e8bd217d961abfca1bdc0eac8d18ab8cfb5e1e70b08df8748",
+  "numeric-portability.log": "464eda3cab45d9d3ca9583f9e9342b79a41399a271c7f052777a736d7a696549",
+  "portability-summary.json": "0a07ded1aa6718609e4ca861819971158bf7a8cc7448408a29ce961f57dcfd53"
 }

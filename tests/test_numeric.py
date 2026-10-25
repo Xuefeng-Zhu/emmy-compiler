@@ -166,9 +166,9 @@ class NumericModelTests(unittest.TestCase):
         np.testing.assert_array_equal(result.outputs['add'], np.multiply(inputs['x0'], inputs['x1'], dtype=np.float32))
 
     def test_relu_nan_zero_infinity_and_subnormal_semantics(self):
-        # Emmy's typed host operation propagates NaN and returns +0 for -0 here.
-        # The challenge's CUDA fmaxf reference differs on NaN; random official
-        # fixtures are finite. This test specifies our typed-IR semantic choice.
+        # PTX max treats +0 > -0; NumPy's host zero-sign choice is platform
+        # dependent. Compare host values, then independently check PTX bits.
+        # The challenge CUDA fmaxf reference still differs on NaN.
         tiny = np.nextafter(np.float32(0), np.float32(1), dtype=np.float32)
         values = np.array([-np.inf, -1, -tiny, -0.0, 0.0, tiny, 1, np.inf, np.nan], dtype=np.float32)
         ir, meta = scalar_fixture(len(values), [('relu', None)])
@@ -178,8 +178,8 @@ class NumericModelTests(unittest.TestCase):
         actual = run_ptx(ptx, meta['kernels'][0], {'x0': values}).outputs['add']
         expected = ElementwiseImpl('relu')(values)
         np.testing.assert_array_equal(actual, expected)
-        finite = ~np.isnan(expected)
-        np.testing.assert_array_equal(actual[finite].view(np.uint32), expected[finite].view(np.uint32))
+        ptx_bits = np.array([0, 0, 0, 0, 0, 1, 0x3f800000, 0x7f800000], dtype=np.uint32)
+        np.testing.assert_array_equal(actual[:-1].view(np.uint32), ptx_bits)
         self.assertTrue(np.isnan(actual[-1]))
         self.assertFalse(np.signbit(actual[3]))
         self.assertEqual(actual[5], tiny)
@@ -196,7 +196,11 @@ class NumericModelTests(unittest.TestCase):
             expected = np.maximum(x, 0) * y
         np.testing.assert_array_equal(np.isnan(actual), np.isnan(expected))
         non_nan = ~np.isnan(expected)
-        np.testing.assert_array_equal(actual[non_nan].view(np.uint32), expected[non_nan].view(np.uint32))
+        # The official comparison treats signed zeros as equal. Keep exact
+        # value equality here and specify the PTX zero signs independently.
+        np.testing.assert_array_equal(actual[non_nan], expected[non_nan])
+        ptx_bits = np.array([0, 0, 0, 0x80000000, 1, 0x7f800000], dtype=np.uint32)
+        np.testing.assert_array_equal(actual[non_nan].view(np.uint32), ptx_bits)
 
     def test_multiply_rounding_and_special_values(self):
         tiny = np.nextafter(np.float32(0), np.float32(1), dtype=np.float32)

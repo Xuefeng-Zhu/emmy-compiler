@@ -15,6 +15,14 @@ checks on Python 3.12.12 / Ubuntu 24.04. Local results do not establish a remote
 CI pass; the exact push commit and its Actions check provide that result.
 See [CI reproduction](CI.md) and [local evidence](validation/2026-10-25-ci/).
 
+The first Linux CI run exposed a signed-zero assumption in a host NumPy test
+oracle (one failure among 240 tests). The corrected tests compare host values
+exactly and use explicit PTX bit expectations for zero signs; compiler code and
+tolerances remain unchanged. The subsequent local run passed all 240 tests in
+149.698 seconds, exit 0. Failure and correction evidence are preserved beside
+the initial record; the exact correction commit’s Actions run records the Linux
+rerun result.
+
 ## Latest exp accuracy checkpoint — October 25, 2026 (UTC)
 
 Only common natural-exp lowering changed from source baseline `ee40e27`.

@@ -1,0 +1,26 @@
+FAIL: test_relu_nan_zero_infinity_and_subnormal_semantics (test_numeric.NumericModelTests.test_relu_nan_zero_infinity_and_subnormal_semantics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+File "/home/runner/work/emmy-compiler/emmy-compiler/tests/test_numeric.py", line 182, in test_relu_nan_zero_infinity_and_subnormal_semantics
+np.testing.assert_array_equal(actual[finite].view(np.uint32), expected[finite].view(np.uint32))
+File "/home/runner/work/emmy-compiler/emmy-compiler/.venv/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 1128, in assert_array_equal
+assert_array_compare(operator.__eq__, actual, desired, err_msg=err_msg,
+File "/home/runner/work/emmy-compiler/emmy-compiler/.venv/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 988, in assert_array_compare
+raise AssertionError(msg)
+AssertionError:
+Arrays are not equal
+
+Mismatched elements: 1 / 8 (12.5%)
+Mismatch at index:
+[3]: 0 (ACTUAL), 2147483648 (DESIRED)
+Max absolute difference among violations: 2147483648
+Max relative difference among violations: 1.
+ACTUAL: array([         0,          0,          0,          0,          0,
+1, 1065353216, 2139095040], dtype=uint32)
+DESIRED: array([         0,          0,          0, 2147483648,          0,
+1, 1065353216, 2139095040], dtype=uint32)
+
+----------------------------------------------------------------------
+Ran 240 tests in 343.904s
+
+FAILED (failures=1)
