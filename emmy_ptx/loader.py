@@ -1,5 +1,6 @@
 """Official deserialization and launch ABI checks. Only trusted IR is accepted."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from math import prod
 import json
 from pathlib import Path
 import re
@@ -22,6 +23,7 @@ class Kernel:
     grid: tuple[int, ...]
     block: tuple[int, ...]
     scalar_outputs: frozenset[str] = frozenset()
+    dimensions: dict[str, tuple[int, ...]] = field(default_factory=dict)
 
 
 def require(condition: bool, message: str) -> None:
@@ -79,19 +81,23 @@ def load_kernel(path: Path) -> Kernel:
         for tensor in n.outputs:
             require(tensor.name not in tensors, f'duplicate buffer: {tensor.name}')
             tensors[tensor.name] = tensor
-    shapes = {}
+    shapes, dimensions = {}, {}
     scalar_outputs = set()
     for name in order:
         require(name in tensors, f'unknown buffer: {name}')
         t = tensors[name]
         require(t.dtype.name == 'f32', f'unsupported dtype for {name}: {t.dtype.name}')
+        require(all(d.is_static for d in t.shape), f'{name}: only static dimensions supported')
+        dims = tuple(d.as_static() for d in t.shape)
+        require(all(type(d) is int and d > 0 for d in dims), f'{name}: dimensions must be positive integers')
+        dimensions[name] = dims
         if len(t.shape) == 0:
             require(name in outputs, f'{name}: rank-0 input buffers are unsupported')
             scalar_outputs.add(name)
             size = 1  # Official scalar outputs use a one-element pointer ABI.
         else:
-            require(len(t.shape) == 1 and t.shape[0].is_static, f'{name}: only static 1-D buffers supported')
-            size = t.shape[0].as_static()
+            require(len(dims) <= 2, f'{name}: only rank-1 and rank-2 buffers supported')
+            size = prod(dims)
         require(0 < size < 2**31, f'{name}: invalid or oversized buffer')
         shapes[name] = size
     args = launch.get('args')
@@ -103,7 +109,7 @@ def load_kernel(path: Path) -> Kernel:
         require(type(a.get('output', False)) is bool and a.get('output', False) == (a['name'] in outputs), f'meta.json: output role mismatch for {a["name"]}')
         require(a.get('intermediate', False) is False, 'meta.json: intermediate arguments are unsupported')
         require(isinstance(a.get('shape'), list) and all(type(d) is int for d in a['shape']), 'meta.json: argument shape must contain integers')
-        require(a.get('dtype') == 'f32' and a.get('shape') == [shapes[a['name']]], f'meta.json: buffer descriptor mismatch for {a["name"]}')
+        require(a.get('dtype') == 'f32' and a.get('shape') == list(dimensions[a['name']] or (1,)), f'meta.json: buffer descriptor mismatch for {a["name"]}')
         if a['name'] in constants:
             # Constants are runtime buffers. Values never enter generated PTX.
             data = a.get('data')
@@ -118,4 +124,4 @@ def load_kernel(path: Path) -> Kernel:
     grid, block = geometry
     require(block[0] <= 1024 and grid[0] * block[0] < 2**31, 'unsupported launch size')
     require(launch.get('smem_bytes', 0) == 0 and not launch.get('zero_outputs', []), 'dynamic shared memory and zero_outputs are unsupported')
-    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block, frozenset(scalar_outputs))
+    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block, frozenset(scalar_outputs), dimensions)

@@ -1,9 +1,11 @@
-"""Test-only cooperative model for the emitted single-block sum PTX subset.
+"""Test-only cooperative model for the emitted sum/mean/row-reduction PTX subset.
 
 Threads run until a shuffle/barrier rendezvous, then resume together. Shared
 memory accesses are checked for initialization and cross-thread conflicts within
-each block-barrier epoch. This is deliberately not a PTX assembler, NVIDIA GPU
-emulator, proof of the hardware memory model, or performance model.
+each block-barrier epoch. CTAs execute serially with fresh local state; global
+loads/stores are counted across the launch and conflicting output owners fail.
+This is deliberately not a PTX assembler, NVIDIA GPU emulator, proof of the
+hardware memory model, or performance model.
 """
 from dataclasses import dataclass
 import re
@@ -23,9 +25,11 @@ class ReductionModelResult:
 
 
 def run_reduction_ptx(ptx, launch, overrides=None):
-    """Interpret one full-warp CTA; reject unsupported instructions or deadlocks."""
-    if launch['grid'] != [1, 1, 1] or launch['block'][1:] != [1, 1]:
-        raise AssertionError('reduction model requires one one-dimensional CTA')
+    """Interpret a one-dimensional grid of full-warp CTAs with private shared state."""
+    grid, block = launch['grid'], launch['block']
+    if (len(grid) != 3 or len(block) != 3 or grid[1:] != [1, 1]
+            or block[1:] != [1, 1] or any(type(d) is not int or d <= 0 for d in grid + block)):
+        raise AssertionError('reduction model requires a positive one-dimensional grid/block')
     threads = launch['block'][0]
     if not 32 <= threads <= 1024 or threads % 32:
         raise AssertionError('reduction model requires complete warps')
@@ -62,11 +66,8 @@ def run_reduction_ptx(ptx, launch, overrides=None):
     lines = [line.split('//', 1)[0].strip() for line in body.splitlines()]
     lines = [line for line in lines if line and not line.startswith('.')]
     labels = {line[:-1]: i for i, line in enumerate(lines) if line.endswith(':')}
-    registers = [{'%tid.x': tid, '%ctaid.x': 0, '%ntid.x': threads} for tid in range(threads)]
-    pcs, steps = [0] * threads, [0] * threads
-    done, waiting = [False] * threads, [None] * threads
-    readers, writers = {}, {}
     barriers = 0
+    output_owners = {}
     step_limit = max(10000, sum(a.size for a in buffers.values()) * 64 // threads + 10000)
 
     def value(tid, operand):
@@ -171,6 +172,10 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                 name, offset = locate(address(tid, args[0]), bases, buffers)
                 if name not in output_names:
                     raise AssertionError('modeled write to an input buffer')
+                owner = (cta, tid)
+                if (name, offset) in output_owners and output_owners[(name, offset)] != owner:
+                    raise AssertionError('multiple threads or CTAs write one output element')
+                output_owners[(name, offset)] = owner
                 buffers[name].flat[offset] = np.float32(value(tid, args[1]))
                 store_counts[name][offset] += 1
             elif opcode in ('ld.shared.f32', 'st.shared.f32'):
@@ -182,8 +187,9 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                     shared[name][offset] = np.float32(value(tid, args[1]))
                 else:
                     reg[args[0]] = shared[name][offset]
-            elif opcode == 'add.rn.f32':
-                reg[args[0]] = np.add(np.float32(value(tid, args[1])), np.float32(value(tid, args[2])), dtype=np.float32)
+            elif opcode in ('add.rn.f32', 'div.rn.f32'):
+                operation = np.add if opcode == 'add.rn.f32' else np.divide
+                reg[args[0]] = operation(np.float32(value(tid, args[1])), np.float32(value(tid, args[2])), dtype=np.float32)
             elif opcode == 'bar.sync':
                 if len(args) != 1:
                     raise AssertionError('only whole-CTA barriers modeled')
@@ -198,33 +204,43 @@ def run_reduction_ptx(ptx, launch, overrides=None):
             else:
                 raise AssertionError(f'unsupported modeled instruction: {line}')
 
-    with np.errstate(over='ignore', invalid='ignore', under='ignore'):
-        while not all(done):
-            progressed = False
-            for tid in range(threads):
-                if not done[tid] and waiting[tid] is None:
-                    run_thread(tid)
+    with np.errstate(over='ignore', invalid='ignore', under='ignore', divide='ignore'):
+        for cta in range(grid[0]):
+            # Shared storage, its initialization proof and rendezvous state belong
+            # to one CTA. A preceding row must never initialize a following row.
+            for name, data in shared.items():
+                data.fill(0)
+                initialized[name].fill(False)
+            readers, writers = {}, {}
+            registers = [{'%tid.x': tid, '%ctaid.x': cta, '%ntid.x': threads} for tid in range(threads)]
+            pcs, steps = [0] * threads, [0] * threads
+            done, waiting = [False] * threads, [None] * threads
+            while not all(done):
+                progressed = False
+                for tid in range(threads):
+                    if not done[tid] and waiting[tid] is None:
+                        run_thread(tid)
+                        progressed = True
+                for start in range(0, threads, 32):
+                    warp = waiting[start:start + 32]
+                    if all(event is not None and event[0] == 'shuffle' for event in warp):
+                        contracts = {(event[1], *event[4:]) for event in warp}
+                        if len(contracts) != 1:
+                            raise AssertionError('divergent modeled warp shuffle rendezvous')
+                        for lane, event in enumerate(warp):
+                            registers[start + lane][event[2]] = warp[lane ^ event[4]][3]
+                            waiting[start + lane] = None
+                        progressed = True
+                if all(event is not None and event[0] == 'barrier' for event in waiting):
+                    if len(set(waiting)) != 1:
+                        raise AssertionError('divergent modeled block barrier rendezvous')
+                    waiting[:] = [None] * threads
+                    readers.clear()
+                    writers.clear()
+                    barriers += 1
                     progressed = True
-            for start in range(0, threads, 32):
-                warp = waiting[start:start + 32]
-                if all(event is not None and event[0] == 'shuffle' for event in warp):
-                    contracts = {(event[1], *event[4:]) for event in warp}
-                    if len(contracts) != 1:
-                        raise AssertionError('divergent modeled warp shuffle rendezvous')
-                    for lane, event in enumerate(warp):
-                        registers[start + lane][event[2]] = warp[lane ^ event[4]][3]
-                        waiting[start + lane] = None
-                    progressed = True
-            if all(event is not None and event[0] == 'barrier' for event in waiting):
-                if len(set(waiting)) != 1:
-                    raise AssertionError('divergent modeled block barrier rendezvous')
-                waiting[:] = [None] * threads
-                readers.clear()
-                writers.clear()
-                barriers += 1
-                progressed = True
-            if not progressed:
-                raise AssertionError('deadlock: incomplete shuffle or block barrier participation')
+                if not progressed:
+                    raise AssertionError('deadlock: incomplete shuffle or block barrier participation')
     for name, counts in store_counts.items():
         if not np.all(counts == 1):
             raise AssertionError(f'output {name} must be written exactly once')

@@ -6,7 +6,7 @@ import sys
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description='Compile trusted Emmy Kernel IR to PTX (pointwise f32 slice).')
+    parser = argparse.ArgumentParser(description='Compile supported trusted Emmy Kernel IR to PTX.')
     parser.add_argument('ir', type=Path, help='Kernel IR JSON; meta.json must be in the same directory')
     args = parser.parse_args()
     if sys.version_info < (3, 12):

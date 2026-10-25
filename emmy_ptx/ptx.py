@@ -119,6 +119,7 @@ class Emitter:
 
     def run(self):
         k = self.kernel
+        require(all(len(dims) == 1 for dims in k.dimensions.values()), 'pointwise: only rank-1 buffers supported')
         require(len(k.body) == 1 and isinstance(k.body[0], Tile), 'expected exactly one top-level Tile')
         tile = k.body[0]
         require(len(tile.axes) == 1, 'only one-dimensional Tile supported')

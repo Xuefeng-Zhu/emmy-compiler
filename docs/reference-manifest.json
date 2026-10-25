@@ -145,6 +145,190 @@
     {
       "path": "problems/r02_big_sum/expected.npz",
       "sha256": "0109852644d0785b770fa38d996b063b156f01e8bfccb303ea0581e42696eec1"
+    },
+    {
+      "path": "problems/r03_mean/expected.npz",
+      "sha256": "9c53fd65aebbc9b6ca477653643273195149be2d93ab472a135883a0a128c5f7"
+    },
+    {
+      "path": "problems/r03_mean/k_mean_ffcca3.ir.json",
+      "sha256": "7eeca2c7869ab2ddf880a0ac7fb689d3ab814d7523eab472ec80ad2458100b86"
+    },
+    {
+      "path": "problems/r03_mean/k_mean_ffcca3.ir.txt",
+      "sha256": "fe08baf58056678516487efa7d107a492cd3c27cb141fdbed49e73e637aeac04"
+    },
+    {
+      "path": "problems/r03_mean/k_mean_ffcca3.ref.cu",
+      "sha256": "c6a4797a0094112bfb655241fd64660d34acf040cb8c5ef3389813ed1e0aa47d"
+    },
+    {
+      "path": "problems/r03_mean/meta.json",
+      "sha256": "d7ab661c388ad447f5661a3b36cba448cf5142402756f1e1c35d110db06c84fe"
+    },
+    {
+      "path": "problems/r04_row_sum/expected.npz",
+      "sha256": "cb724cbe21276b1438add7263e418f52c0eb90c4501954a245678dcc793c895d"
+    },
+    {
+      "path": "problems/r04_row_sum/k_sum_1_reduce.ir.json",
+      "sha256": "4c7befc76b72c6c69be4675d69ccd14e336b9139fe22aaec1b94230858c8ab03"
+    },
+    {
+      "path": "problems/r04_row_sum/k_sum_1_reduce.ir.txt",
+      "sha256": "fa3fbd1fa458454ab2af9f24399e34dd4f81117028f99dc4014e6ece3c161128"
+    },
+    {
+      "path": "problems/r04_row_sum/k_sum_1_reduce.ref.cu",
+      "sha256": "5841d416b8677081c9b08e6bbb4590dfb611bd824432b7c8862064d0eb15d8f1"
+    },
+    {
+      "path": "problems/r04_row_sum/meta.json",
+      "sha256": "803cb710590156ad319eb44b2d2aa6c1ee9b0e3a666ebc09de259e50d83a3ba1"
+    },
+    {
+      "path": "problems/a01_attention/k_matmul_softmax_reduce_b55365.ir.json",
+      "sha256": "0a6925795c1b8e108befbdc3300c722ea5a7fb19d2337597eca860e9c36eff9a"
+    },
+    {
+      "path": "problems/a01_attention/k_matmul_softmax_reduce_b55365.ir.txt",
+      "sha256": "99de4b7db8dbcb031f7e50defd926159489295a1cfa1c709a5b47c2c72d9970f"
+    },
+    {
+      "path": "problems/a01_attention/k_matmul_softmax_reduce_b55365.ref.cu",
+      "sha256": "b068c78b3346b88a071813440db3a83c4839817bdd376d4d5c6fcd13372b03a3"
+    },
+    {
+      "path": "problems/a01_attention/meta.json",
+      "sha256": "c280c572744016ecf6ca2971312ad2ce8a10b28c0f3e38561c1a096c2ea7352f"
+    },
+    {
+      "path": "problems/a02_attention_128/k_matmul_softmax_reduce_6f0029.ir.json",
+      "sha256": "a51792c9e4d920a493054fb2a6986d87766cc1b3717078f8e631a45d1b0bf1dd"
+    },
+    {
+      "path": "problems/a02_attention_128/k_matmul_softmax_reduce_6f0029.ir.txt",
+      "sha256": "f17f98920e7eed76d899c984159383624b9365539d2a9dde97ee76ff7782e628"
+    },
+    {
+      "path": "problems/a02_attention_128/k_matmul_softmax_reduce_6f0029.ref.cu",
+      "sha256": "c7801810a68781cd2d98a9220f827581738b36efbbec17ef5ec3fe93abc484bc"
+    },
+    {
+      "path": "problems/a02_attention_128/meta.json",
+      "sha256": "adcc08994786076e7cb9835ab3bab19b0dc9c0d00a999adea124380f8300de18"
+    },
+    {
+      "path": "problems/f01_rmsnorm/k_mean_cbd1de.ir.json",
+      "sha256": "a8e6819e3144b942d8983b52b6865fa692868105b20de30f6ba4df424a07862a"
+    },
+    {
+      "path": "problems/f01_rmsnorm/k_mean_cbd1de.ir.txt",
+      "sha256": "d99ea583e419490317bb5731fe8bb39d00538c1adc3a40360456c6655ec747f2"
+    },
+    {
+      "path": "problems/f01_rmsnorm/k_mean_cbd1de.ref.cu",
+      "sha256": "1dc95cd20b85bb1322d044fc1004f9c8e3e63b755c9951a9dc6cf8d661bec830"
+    },
+    {
+      "path": "problems/f01_rmsnorm/meta.json",
+      "sha256": "f45014c6b0963ec9727fc0f1c9bb585319c4ac94292260bc8f7c10557c1b8e1d"
+    },
+    {
+      "path": "problems/f02_row_softmax/k_softmax_05263d.ir.json",
+      "sha256": "d48b030e9d9a765aa631287f72935bc59f20926f3ccb09dc7f7932106770af03"
+    },
+    {
+      "path": "problems/f02_row_softmax/k_softmax_05263d.ir.txt",
+      "sha256": "f3b3b1692570641ec244ac393aef43e30dea889408f873b9cbec890204eabc1d"
+    },
+    {
+      "path": "problems/f02_row_softmax/k_softmax_05263d.ref.cu",
+      "sha256": "a04657722fd932fe20b856fcac285cd9fc67c7da8d1e5badaba1ddd9256112a9"
+    },
+    {
+      "path": "problems/f02_row_softmax/meta.json",
+      "sha256": "ddbe97ea42c7b077d30d140b751f8062caf47b5620cb423a02c1dd848cd61900"
+    },
+    {
+      "path": "problems/f03_l2norm/k_div_reduce.ir.json",
+      "sha256": "34abdb33fe950100029930242777d0b22a12e523117de21bc9d78b43310c567d"
+    },
+    {
+      "path": "problems/f03_l2norm/k_div_reduce.ir.txt",
+      "sha256": "d09d8aeb8769b463e0c94a113eafedc764fbce2790554daaf4f8fcecb04ffd95"
+    },
+    {
+      "path": "problems/f03_l2norm/k_div_reduce.ref.cu",
+      "sha256": "b1641c5f262784b4a990f1f0b8082f8fd8addb48105c534265ba5be9aed512a3"
+    },
+    {
+      "path": "problems/f03_l2norm/meta.json",
+      "sha256": "cbf67c2d198f4fea1bb140083ec65c4bf14202090daaa4aac77f1514ecc60b95"
+    },
+    {
+      "path": "problems/m01_matmul_512/k_matmul_2967be.ir.json",
+      "sha256": "ed9ab32776ce0de8b0d1f0367da54c586bf993c964efc01482666247a976dc02"
+    },
+    {
+      "path": "problems/m01_matmul_512/k_matmul_2967be.ir.txt",
+      "sha256": "ec216aa91ac45c304c0c24a5c6e9a5011feaa3786e285b094dfa849a5a561c09"
+    },
+    {
+      "path": "problems/m01_matmul_512/k_matmul_2967be.ref.cu",
+      "sha256": "17f61d2c8732ae3dd5660f3b9b7be33939ec83b3356cecf210b7a0c45fc008c4"
+    },
+    {
+      "path": "problems/m01_matmul_512/meta.json",
+      "sha256": "3324370a2d29614c6c7ff7cf549563f9afb22bab0ed31ed62d8ffd27c59dcd57"
+    },
+    {
+      "path": "problems/m02_matmul_rect/k_matmul.ir.json",
+      "sha256": "c47bb47c529e7362c9272784ac21a31f2a5d79546cc11b19beff891278d22206"
+    },
+    {
+      "path": "problems/m02_matmul_rect/k_matmul.ir.txt",
+      "sha256": "1d4fde61bac0ea36e48dd8800ff775b7a0a0ede0a9093c303c76f1e4deaf1a7f"
+    },
+    {
+      "path": "problems/m02_matmul_rect/k_matmul.ref.cu",
+      "sha256": "b011de4fd94d66a578472abe47a8be3fb4d220d7071770ef103685eb1c51bf2c"
+    },
+    {
+      "path": "problems/m02_matmul_rect/meta.json",
+      "sha256": "a82fd8d7f5933749868035254537b962d3d0140c8bf3e22f7f8a54a289a9c365"
+    },
+    {
+      "path": "tools/expressions_open.py",
+      "sha256": "49cf2e23c7eca3f3cd30f199358d376019097a59c258b0979a300103a928b562"
+    },
+    {
+      "path": "problems/a01_attention/expected.npz",
+      "sha256": "ccc0ad1a70f679781c8aff8064ae73368e04bc35018a537dc15ef8610262ed51"
+    },
+    {
+      "path": "problems/a02_attention_128/expected.npz",
+      "sha256": "ebd7c000d75e52707f2e65304e05fbf963b4799919f814f685490c76c89e7080"
+    },
+    {
+      "path": "problems/f01_rmsnorm/expected.npz",
+      "sha256": "197016500cfca3ee3a1952273d50655e5bbf60093c28ad801e28eb3ccb76a6fb"
+    },
+    {
+      "path": "problems/f02_row_softmax/expected.npz",
+      "sha256": "7e38d188cdc0bbb7afda1e6007318b0174bcdf82eb3855775967e49d4b8ee8ce"
+    },
+    {
+      "path": "problems/f03_l2norm/expected.npz",
+      "sha256": "fb2e242cbfe9834c6d45f27f29acc750a5b4ea8ad6ab509baa7a5b4c53586380"
+    },
+    {
+      "path": "problems/m01_matmul_512/expected.npz",
+      "sha256": "6396bececa75b2adee8c83bb0c090f9a68e7297d7de492f5a2f0cd3e67f24c36"
+    },
+    {
+      "path": "problems/m02_matmul_rect/expected.npz",
+      "sha256": "b0a5f6719c01fdc55054d983e7d75f880577e4741c63ae39c9fa704507e58134"
     }
   ]
 }
