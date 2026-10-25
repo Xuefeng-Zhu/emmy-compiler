@@ -5,10 +5,11 @@ It reads Emmy Kernel IR with `emmy-ml==0.3.11` and emits PTX using our own lower
 The current slice handles one-dimensional, statically sized f32 addition,
 multiplication and ReLU, with runtime constant buffers. All four official
 pointwise cases (`p00` through `p03`) compile locally. A validated single-block
-f32 sum path also compiles `r01` and `r02`, including rank-0 result buffers.
+f32 sum path also compiles `r01`–`r04`: scalar sum, mean with a runtime
+divisor, and row sum with rank-2 inputs.
 
 **Status: all four public pointwise cases passed official PTX assembly, GPU
-execution and expected-array comparison; 85 local tests pass. r01/r02 have
+execution and expected-array comparison; 108 local tests pass. r01–r04 have
 local PTX generation and cooperative CPU-model checks only.**
 The GPU runs cover the supplied finite inputs. Exceptional-input behavior and
 hidden variants are not validated; the CPU model remains a test helper.
@@ -96,6 +97,7 @@ performance benchmarks. The [private source repository](https://github.com/Xuefe
 was updated through commit `519fc60`. The subsequent p02/p03 runner results and
 wrapper adaptation remain local and unpushed.
 
-Local implementation is continuing through mean and row sum, then the remaining
-public categories. New GPU validation, hidden-set validation and competition
+All eight basic public cases compile and pass their local numeric models. Local
+implementation is continuing through fused operations and the remaining public
+categories. New GPU validation, hidden-set validation and competition
 submission remain pending. Local continuation does not authorize new uploads.

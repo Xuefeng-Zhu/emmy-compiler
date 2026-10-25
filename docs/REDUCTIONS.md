@@ -20,9 +20,23 @@ buffer; it is never passed by value. The public cases use 128 threads and 16 byt
 of static shared memory, while metadata `smem_bytes=0` describes dynamic storage.
 
 A sum with a different combiner, partial warp, non-power-of-two warp count,
-multiple blocks, row layout, non-f32 state, atomic output, custom barrier,
+multiple blocks per row, non-f32 state, atomic output, custom barrier,
 segmented tree or empty input fails explicitly. Names and argument order may
 change, and tests vary both lengths and block sizes independently.
+
+## Mean and row sum
+
+The same plan now supports an optional divisor epilogue and a row axis. Mean
+loads a one-element runtime input and applies `div.rn.f32` after summation; changing
+the metadata value changes runtime data without changing PTX. Row sums preserve
+the input dimensions `(rows, columns)` and map one CTA to each row. Addresses
+use `(row * columns + column) * 4`; row results use `row * 4`. A one-row matrix
+still retains its rank-2 input/rank-1 output contract. Grid size must equal rows.
+
+Both extensions preserve the same synchronized intra-CTA reduction. Tests cover
+column tails, idle lanes, changed row counts and blocks of 32–1024 threads.
+The CPU model resets all private/shared state between CTAs and rejects multiple
+threads or CTAs writing one ordinary output element.
 
 ## Evidence
 
@@ -49,3 +63,9 @@ would require separate authorization for the official HTTP runner.
 PTX synchronization semantics were checked against NVIDIA's
 [shuffle reference](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-shfl-sync) and
 [barrier reference](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#parallel-synchronization-and-communication-instructions-bar).
+
+The mean/row-sum [local record](validation/2026-10-25/basic-eight-local-results.json)
+preserves their exact proposed public launch descriptors. These also remain
+unsent: r03 uses x[32768], runtime count[1], scalar output[1], grid 1 and block
+128; r04 uses x[64,512], output[64], grid 64 and block 128. Both use dynamic shared
+memory 0. Approving local development does not approve these runner requests.

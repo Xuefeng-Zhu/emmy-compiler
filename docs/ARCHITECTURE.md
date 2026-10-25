@@ -7,7 +7,7 @@ IR objects. No Emmy renderer, nvcc, ptxas or other lowering backend is invoked.
 The loader accepts exactly one KernelOp plus InputOp and ConstantOp leaves. Graph
 activation inputs must match InputOp outputs; kernel inputs include both activation
 and constant buffers. It checks the matching metadata entry/node, f32 types,
-positive static one-dimensional shapes, rank-0 output buffers, buffer roles and
+positive static rank-1/rank-2 shapes, rank-0 output buffers, buffer roles and
 launch dimensions. Scalar IR outputs still use a one-element pointer ABI.
 `args` must have the same names in exactly the same order as `arg_order`.
 By-value scalars, intermediate buffers and in-place outputs are rejected.
@@ -29,7 +29,7 @@ multiplication by a constant. Affine bounds prove indices fit within 31 bits and
 accesses fit declared buffers. Writes must cover each output once with contiguous
 per-thread cells, ruling out races and silent partial output in this slice.
 Pointwise scalar cells handle odd sizes and block tails; grouped partial cells requiring
-per-element predicates are unsupported and rejected. Two-dimensional buffers, other
+per-element predicates are unsupported and rejected. Two-dimensional pointwise buffers, other
 types, nonlinear pointwise indices and rasterized scheduling remain unsupported.
 Rank-0 results and cooperative nodes are accepted only by the reduction path
 described below.
@@ -46,15 +46,17 @@ leave partial PTX. Official deserialization uses Python expression evaluation;
 only trusted official or self-generated IR is supported, not hostile uploads.
 
 A separate structural validator recognizes the single-CTA sum topology used by
-r01/r02: a strided load/accumulate loop, full-warp shuffle, shared partial store,
+r01–r04: a strided load/accumulate loop, full-warp shuffle, shared partial store,
 block synchronization, shared halving tree and scalar final write. It derives
 length, thread count, bindings and ABI order from IR. It rejects every unsupported
 node/field before emitting the corresponding schedule. Complete power-of-two
 blocks of 32–1024 threads use neutral idle lanes and unconditional barriers.
+Rank-2 row sums assign one CTA per row and use row-major addresses; mean loads
+its divisor from a separate runtime buffer and emits `div.rn.f32` after reduction.
 Only lane zero writes each shared tree slot. Static shared storage is declared
 in PTX; metadata dynamic shared memory remains zero. See REDUCTIONS.md.
 
-Validation levels remain distinct: 85 local tests (including a limited CPU PTX
+Validation levels remain distinct: 108 local tests (including a limited CPU PTX
 model and mocked transport tests), and NVIDIA assembly/GPU output comparison for
 all four public pointwise cases. GPU receipts cover their supplied finite arrays;
 shape variants and exceptional values have local checks only. CPU-model agreement

@@ -4,16 +4,43 @@ Checkpoint: October 25, 2026 (UTC).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
 **All four public pointwise cases passed PTX assembly, RTX 5090 execution and
-official expected-array comparison. The latest local suite has 85 tests.**
+official expected-array comparison. The latest local suite has 108 tests.**
 
 p02/p03 each passed once with max absolute error 0 and client/wrapper exit 0.
 Their single-launch timings were 14.976/15.328 microseconds, not benchmarks. No
 compiler fixes or retries were needed. These results apply to the supplied finite
 arrays; exceptional-input semantics and hidden variants remain unverified.
 
+## Basic-eight local checkpoint
+
+All eight basic public cases now compile and pass their local CPU models. Four
+pointwise cases have prior GPU evidence; r01–r04 have no assembly/GPU evidence.
+The new extension adds runtime-divisor mean and one-CTA-per-row sum while
+preserving the four pointwise PTX hashes and r01/r02 behavior.
+
+`PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/basic-eight-local-tests.txt 2>&1`
+
+Result: **108 tests in 12.929 seconds, OK; exit 0**. The reference manifest now
+verifies 82 immutable public files, including later categories prepared for local
+work. [Full log](validation/2026-10-25/basic-eight-local-tests.txt) and
+[result record](validation/2026-10-25/basic-eight-local-results.json).
+
+| Case | Local model max absolute error | NVIDIA assembly / GPU |
+| --- | --- | --- |
+| r03_mean | 9.313225746154785e-10 | Not run |
+| r04_row_sum | 5.7220458984375e-6 | Not run |
+
+The multi-CTA model checks independent shared/register state, barrier participation
+and unique output ownership. Tests vary rows, columns, block size, names, ABI
+order and the runtime divisor independently of input length. All modeled inputs
+of both official fixtures are read once and outputs written once.
+
+Next local slice: reusable fused row normalization and online softmax, followed by
+attention and matrix multiplication. New GPU uploads and pushes remain separate.
+
 ## Current local reduction checkpoint
 
-Reusable single-block f32 sum lowering now covers r01/r02. It supports rank-0
+Reusable single-block f32 sum lowering now covers r01/r02 at this historical checkpoint. It supports rank-0
 outputs through the official pointer ABI, lengths derived from IR, full-warp
 blocks from 32 to 1024 threads, idle lanes/tails and unique shared-memory writers.
 All four pointwise PTX artifacts remain byte-identical to their GPU-tested hashes.
@@ -30,10 +57,10 @@ unknown instructions. It is not an assembler or GPU emulator.
 | --- | --- | --- |
 | r01_array_sum | Pass; max absolute error 3.814697265625e-6 | Not run |
 | r02_big_sum | Pass; max absolute error 1.52587890625e-5 | Not run |
-| r03_mean, r04_row_sum | Next local slice | Not run |
+| r03_mean, r04_row_sum | See newer local checkpoint above | Not run |
 
 The following sections retain historical pointwise checkpoints and their exact
-commands. Current coverage is four public GPU cases plus two local-only cases,
+commands. At that checkpoint coverage was four public GPU cases plus two local-only cases,
 not a completed eight-problem MVP. Local implementation is continuing; new GPU
 uploads and pushes need separate authorization.
 
@@ -59,7 +86,7 @@ uploads and pushes need separate authorization.
 | p02_scale_shift | Exit 0 | Passed, rtol/atol 1e-6 | PASS, RTX 5090 |
 | p03_relu_mul | Exit 0 | Passed, rtol/atol 0 | PASS, RTX 5090 |
 | r01/r02 reductions | Exit 0 | Passed, original tolerances | Not run |
-| r03/r04 reductions | Pending implementation | Not run | Not run |
+| r03/r04 reductions | Exit 0 | Passed, original tolerances | Not run |
 
 The official basic scope is eight problems: four pointwise plus four reductions.
 This is not yet the competition MVP. There are 15 public problems overall.
@@ -134,7 +161,8 @@ remain isolated in `.python/` and `.venv312/`; the optional runner environment i
 separate. The project-local runtime avoids the existing Homebrew SQLite issue.
 
 Pointwise support remains static one-dimensional f32 buffers and one ordinary
-Tile. The new single-CTA f32 sum topology additionally supports rank-0 outputs,
+Tile. The per-row f32 sum topology additionally supports rank-0 outputs, rank-2 row
+inputs, runtime division,
 strided accumulation, shuffles and synchronized shared storage. Other reduction
 topologies and shapes remain explicit errors at this checkpoint.
 The NaN conflict between the official expected-generation function and CUDA
@@ -143,7 +171,7 @@ also rejects NaN/NaN. Hidden exceptional-input requirements remain unresolved;
 this is not a claim of universal f32 support. Deserialization accepts trusted
 IR only.
 
-Next local slice: r03 mean with its runtime divisor and r04 row sum. New reduction
+The r03/r04 local implementation is complete. New reduction
 GPU uploads are pending separate approval; local work can proceed independently.
 
 ## Completed p02/p03 GPU payload

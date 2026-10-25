@@ -75,3 +75,10 @@ rounding order is expected and the original per-case tolerances are unchanged.
 The r01/r02 CPU-model errors are 3.814697265625e-6 and 1.52587890625e-5.
 No NVIDIA assembly or execution has been performed for these reductions.
 Subnormal and exceptional reduction behavior has not been established on GPU.
+
+Mean applies `div.rn.f32` to the completed f32 sum and a value loaded from its
+runtime divisor buffer; no constant reciprocal is substituted. Row sum uses the
+same arithmetic independently per row. Local CPU-model errors against the r03
+and r04 float64-based oracles are 9.313225746154785e-10 and 5.7220458984375e-6;
+original tolerances remain unchanged. No new exceptional-input or GPU claim is
+implied by these finite public fixtures.

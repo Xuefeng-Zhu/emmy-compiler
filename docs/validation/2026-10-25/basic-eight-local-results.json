@@ -1,0 +1,131 @@
+{
+  "date_utc": "2026-10-25",
+  "validation": "local PTX emission and cooperative CPU model only",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/basic-eight-local-tests.txt 2>&1",
+  "tests": 108,
+  "seconds": 12.929,
+  "exit_code": 0,
+  "reference_files_verified": 82,
+  "pointwise_ptx_hashes": "all four unchanged from GPU receipts",
+  "gpu_status": "only p00-p03 have prior GPU evidence; no new requests",
+  "cases": [
+    {
+      "case": "r03_mean",
+      "ptx_sha256": "67d314804b7f029f0c54ad0bba8951c8a1061a014406a227a74a88318d41d1f9",
+      "ptx_bytes": 2512,
+      "cpu_model_max_absolute_error": 9.313225746154785e-10,
+      "rtol": 0.0001,
+      "atol": 0.0001,
+      "equal_nan": false,
+      "all_inputs_read_once": true,
+      "all_outputs_written_once": true,
+      "block_barrier_rendezvous": 3,
+      "assembly": "not run",
+      "gpu": "not run",
+      "proposed_launch": {
+        "node": "mean",
+        "entry": "k_mean_ffcca3",
+        "arg_order": [
+          "x",
+          "mean_keepdim_count",
+          "mean"
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "block": [
+          128,
+          1,
+          1
+        ],
+        "smem_bytes": 0,
+        "zero_outputs": [],
+        "args": [
+          {
+            "name": "x",
+            "dtype": "f32",
+            "shape": [
+              32768
+            ],
+            "seed": 0
+          },
+          {
+            "name": "mean_keepdim_count",
+            "dtype": "f32",
+            "shape": [
+              1
+            ],
+            "data": [
+              32768.0
+            ]
+          },
+          {
+            "name": "mean",
+            "dtype": "f32",
+            "shape": [
+              1
+            ],
+            "output": true
+          }
+        ],
+        "final": true
+      }
+    },
+    {
+      "case": "r04_row_sum",
+      "ptx_sha256": "8531cfeb40dafeb27495bce58a4f482900dd8a8bf780c90cd75ae0aa7d801571",
+      "ptx_bytes": 2483,
+      "cpu_model_max_absolute_error": 5.7220458984375e-06,
+      "rtol": 0.0001,
+      "atol": 0.0001,
+      "equal_nan": false,
+      "all_inputs_read_once": true,
+      "all_outputs_written_once": true,
+      "block_barrier_rendezvous": 192,
+      "assembly": "not run",
+      "gpu": "not run",
+      "proposed_launch": {
+        "node": "sum_1",
+        "entry": "k_sum_1_reduce",
+        "arg_order": [
+          "x",
+          "sum_1"
+        ],
+        "grid": [
+          64,
+          1,
+          1
+        ],
+        "block": [
+          128,
+          1,
+          1
+        ],
+        "smem_bytes": 0,
+        "zero_outputs": [],
+        "args": [
+          {
+            "name": "x",
+            "dtype": "f32",
+            "shape": [
+              64,
+              512
+            ],
+            "seed": 0
+          },
+          {
+            "name": "sum_1",
+            "dtype": "f32",
+            "shape": [
+              64
+            ],
+            "output": true
+          }
+        ],
+        "final": true
+      }
+    }
+  ]
+}
