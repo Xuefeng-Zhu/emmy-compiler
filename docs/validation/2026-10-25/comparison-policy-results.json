@@ -1,0 +1,22 @@
+{
+  "date_utc": "2026-10-25",
+  "test_command": ".venv312/bin/python -B -m unittest discover -s tests -v > build/comparison-policy-tests.txt 2>&1",
+  "tests": 64,
+  "elapsed_seconds": 13.219,
+  "exit_code": 0,
+  "official_array_equal_nan": false,
+  "problem_tolerances_changed": false,
+  "comparator_cases": {
+    "nan/nan": "rejected",
+    "nan/zero": "rejected",
+    "zero/nan": "rejected",
+    "signed_zeros": "accepted"
+  },
+  "semantic_reference": "np.maximum(x, 0) * y",
+  "semantic_reference_source": "https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/tools/expressions_open.py#L41-L43",
+  "semantic_test_does_not_imply_runner_acceptance_of_nan": true,
+  "validation_kind": "local CPU tests and limited PTX model; no assembly or GPU execution",
+  "compiler_emitter_changed": false,
+  "new_gpu_execution": false,
+  "unresolved": "Expected-generation function propagates NaN but CUDA reference suppresses it; official checker rejects NaN even against NaN. No general finite-only input rule was found."
+}

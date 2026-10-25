@@ -3,7 +3,7 @@
 Checkpoint: October 25, 2026 (UTC).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
-**62 local tests pass. All four public pointwise cases compile and match official
+**64 local tests pass. All four public pointwise cases compile and match official
 expected arrays in our CPU model. GPU PASS evidence remains limited to p00/p01.**
 
 ## Delivered in this local extension
@@ -32,7 +32,25 @@ expected arrays in our CPU model. GPU PASS evidence remains limited to p00/p01.*
 The official basic scope is eight problems: four pointwise plus four reductions.
 This is not yet the competition MVP. There are 15 public problems overall.
 
-Executed from the project directory:
+Latest verification correction, executed from the project directory:
+
+```sh
+.venv312/bin/python -B -m unittest discover -s tests -v > build/comparison-policy-tests.txt 2>&1
+```
+
+Result: **64 tests in 13.219 seconds, OK; exit 0**. Official-array comparisons now
+explicitly use `equal_nan=False` with unchanged metadata tolerances. Regressions
+reject NaN/NaN, NaN/zero and zero/NaN, and accept signed zeros. A separate semantic
+test checks ReLU followed by multiply against the official expected-generation
+expression `np.maximum(x, 0) * y`, including NaN classification and exact non-NaN
+bits. All four finite official expected arrays still match in the CPU model.
+The [correction test log](validation/2026-10-25/comparison-policy-tests.txt) and
+[result record](validation/2026-10-25/comparison-policy-results.json) preserve this run.
+Compiler emission, reference metadata, tolerances and previous GPU receipts are
+unchanged. No GPU requests, dependencies or pushes were added.
+
+The preceding pointwise-extension checkpoint is retained below. Executed from
+the project directory:
 
 ```sh
 .venv312/bin/python -B -m unittest discover -s tests -v > build/local-pointwise-tests.txt 2>&1
@@ -50,8 +68,9 @@ cached files against reference-manifest.json, pinned to upstream commit
 [local result record](validation/2026-10-25/local-results.json) contain details.
 No new dependencies, runner requests, GPU jobs or repository pushes were made.
 
-Nine CPU-model test methods check output values and that every output element is
-written exactly once. They cover scalar lengths 1, 3, 255, 256, 257, 1023 and 1025;
+The numeric test module now has eleven methods covering CPU-model value/address
+flow, output write coverage and the acceptance comparator. They cover scalar
+lengths 1, 3, 255, 256, 257, 1023 and 1025;
 width-four shapes 4, 12 and 1028; runtime constants; a nine-element constant array;
 parameter reordering; special float values; and separate multiply/add rounding.
 This model is deliberately limited and is not a PTX assembler or GPU emulator.
@@ -71,9 +90,11 @@ separate. The project-local runtime avoids the existing Homebrew SQLite issue.
 Only static one-dimensional f32 buffers and one ordinary Tile are supported.
 Rank-0 buffers, other types, partial grouped tails, control flow, reductions,
 shared-memory synchronization and cooperative scheduling remain explicit errors.
-The ReLU NaN discrepancy between Emmy's host operation and the CUDA reference is
-recorded in [NUMERICS.md](NUMERICS.md); hidden exceptional-input requirements remain
-unresolved. Deserialization accepts trusted IR only.
+The NaN conflict between the official expected-generation function and CUDA
+reference is recorded in [NUMERICS.md](NUMERICS.md). The current official checker
+also rejects NaN/NaN. Hidden exceptional-input requirements remain unresolved;
+this is not a claim of universal f32 support. Deserialization accepts trusted
+IR only.
 
 Next implementation after pointwise GPU validation: a general first reduction,
 including scalar result buffers, reduction loops/accumulators and the required

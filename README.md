@@ -6,7 +6,7 @@ The current slice handles one-dimensional, statically sized f32 addition,
 multiplication and ReLU, with runtime constant buffers. All four official
 pointwise cases (`p00` through `p03`) compile locally.
 
-**Status: 62 local tests pass; p00/p01 have prior GPU PASS evidence.**
+**Status: 64 local tests pass; p00/p01 have prior GPU PASS evidence.**
 p02/p03 match their official expected arrays in a CPU model; they have not yet
 been assembled or executed on a GPU. The model is a test helper, not a PTX backend.
 This is an initial working slice, not a completed competition MVP. See

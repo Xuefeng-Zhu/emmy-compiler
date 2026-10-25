@@ -19,14 +19,38 @@ NaN payloads is not promised. These choices were checked against NVIDIA's
 and [max](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-max)
 instruction reference.
 
-There is an unresolved source-level semantic discrepancy for exceptional inputs.
-The installed pinned Emmy 0.3.11 `ElementwiseImpl('relu')` uses NumPy maximum;
-in our pinned NumPy environment it propagates NaN and maps -0 to +0. The official
-[p03 CUDA reference](https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/problems/p03_relu_mul/k_mul_pointwise.ref.cu)
-uses `fmaxf(0.0f, x)`, which selects zero when x alone is NaN. We choose the typed
-Emmy host operation for this slice and explicitly test it. The public expected
-arrays contain finite inputs and do not settle hidden-test requirements for NaN.
-This is not a claim of identical behavior to every reference backend.
+The direct expected-generation expression for official p03 is
+`np.maximum(x, 0) * y`, defined in
+[expressions_open.py lines 41-43](https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/tools/expressions_open.py#L41-L43).
+[generate.py lines 131-140](https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/tools/generate.py#L131-L140)
+applies that function to seeded inputs to construct expected.npz. It propagates
+NaN, as does the pinned Emmy host operation. This is the reason to retain
+`max.NaN`, independently of the host implementation.
+
+An upstream exceptional-value conflict remains unresolved: the official
+[p03 CUDA reference](https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/problems/p03_relu_mul/k_mul_pointwise.ref.cu#L7)
+uses `fmaxf(0.0f, x)`, which selects zero when x alone is NaN. For x=NaN, y=1,
+the expected-generation function and our PTX produce NaN, while this CUDA
+expression produces +0. The public p03 seeded inputs and expected outputs are
+finite; no general rule explicitly excludes NaN inputs. Finite public data do
+not settle the hidden exceptional-input contract. We do not claim universal f32
+input compatibility or treat this documented conflict as fixed.
+
+Acceptance comparisons and operation-semantic tests have different purposes.
+Official expected-array tests use the exact metadata tolerances and explicit
+`equal_nan=False`, matching the NaN policy in
+[submit.py line 150](https://github.com/cloudrift-ai/emmy-hackathon-2026/blob/ec8cde1943f88efea3827a95bda6085553d2d407/submit.py#L150).
+NaN/NaN and NaN/zero fail that policy; signed zeros compare equal. Regression
+cases exercise the same helper used by all four official fixture comparisons.
+The previous default of numpy.testing.assert_allclose allowed paired NaNs and
+has been corrected; problem tolerances have not changed.
+
+Separately, the ReLU/multiply semantic test directly evaluates the official
+`np.maximum(x, 0) * y` expression for special values, comparing NaN classification
+and the bits of every non-NaN result. A semantic NaN match is not a runner PASS:
+the current official checker rejects NaN even against a NaN expectation. The
+ReLU-only test also checks the pinned Emmy host operation. In this environment,
+both map -0 to +0 before multiplication; multiplication can produce -0 again.
 
 Tests compare finite result bits (including signed zero), NaN classification,
 infinities and the smallest float32 subnormal. A separate-rounding witness uses

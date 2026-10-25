@@ -23,6 +23,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PROBLEMS = ('p00_scalar_add', 'p01_vector_add', 'p02_scale_shift', 'p03_relu_mul')
 
 
+def assert_official_array_matches(actual, expected, *, rtol, atol):
+    """Keep submit.py's NaN policy and the problem's unchanged tolerances."""
+    np.testing.assert_allclose(actual, expected, rtol=rtol, atol=atol, equal_nan=False)
+
+
 def fixture(problem):
     folder = ROOT / '.reference/problems' / problem
     paths = sorted(folder.glob('*.ir.json'))
@@ -76,7 +81,24 @@ class NumericModelTests(unittest.TestCase):
                 with np.load(expected_path, allow_pickle=False) as expected:
                     self.assertEqual(set(result.outputs), set(expected.files))
                     for name in expected.files:
-                        np.testing.assert_allclose(result.outputs[name], expected[name], rtol=meta['rtol'], atol=meta['atol'])
+                        assert_official_array_matches(result.outputs[name], expected[name], rtol=meta['rtol'], atol=meta['atol'])
+
+    def test_official_comparator_nan_and_signed_zero_policy(self):
+        cases = (
+            ('nan/nan', [np.nan], [np.nan], False),
+            ('nan/zero', [np.nan], [0.0], False),
+            ('zero/nan', [0.0], [np.nan], False),
+            ('signed zeros', [-0.0, 0.0], [0.0, -0.0], True),
+        )
+        for label, actual, expected, accepts in cases:
+            with self.subTest(case=label):
+                actual = np.asarray(actual, dtype=np.float32)
+                expected = np.asarray(expected, dtype=np.float32)
+                if accepts:
+                    assert_official_array_matches(actual, expected, rtol=0, atol=0)
+                else:
+                    with self.assertRaises(AssertionError):
+                        assert_official_array_matches(actual, expected, rtol=0, atol=0)
 
     def test_odd_lengths_and_block_boundaries_in_cpu_model(self):
         for size in (1, 3, 255, 256, 257, 1023, 1025):
@@ -161,6 +183,20 @@ class NumericModelTests(unittest.TestCase):
         self.assertTrue(np.isnan(actual[-1]))
         self.assertFalse(np.signbit(actual[3]))
         self.assertEqual(actual[5], tiny)
+
+    def test_relu_multiply_matches_expected_generation_expression(self):
+        # Official tools/expressions_open.py p03: np.maximum(x, 0) * y.
+        # This checks operation semantics, not runner acceptance of NaN outputs.
+        tiny = np.nextafter(np.float32(0), np.float32(1), dtype=np.float32)
+        x = np.array([np.nan, np.nan, -np.inf, -1, -0.0, 0.0, tiny, np.inf, np.inf], dtype=np.float32)
+        y = np.array([1, -2, 1, 1, 1, -2, 1, 1, 0], dtype=np.float32)
+        ir, meta = scalar_fixture(len(x), [('relu', None), ('multiply', 'right')])
+        actual = run_ptx(compile_fixture(ir, meta), meta['kernels'][0], {'x0': x, 'x1': y}).outputs['add']
+        with np.errstate(invalid='ignore'):
+            expected = np.maximum(x, 0) * y
+        np.testing.assert_array_equal(np.isnan(actual), np.isnan(expected))
+        non_nan = ~np.isnan(expected)
+        np.testing.assert_array_equal(actual[non_nan].view(np.uint32), expected[non_nan].view(np.uint32))
 
     def test_multiply_rounding_and_special_values(self):
         tiny = np.nextafter(np.float32(0), np.float32(1), dtype=np.float32)
