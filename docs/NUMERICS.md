@@ -97,7 +97,26 @@ An independent hand-written PTX probe checks this operand convention in the mode
 Local activation regressions compare finite samples and composed kernels against
 NumPy and Python's `math.erf`, including changed shapes and rank-2 addressing. The CPU models use
 mathematical float32 exp2, so these tests do not measure NVIDIA's approximation
-error. The saved public GPU receipts predate these added activation variants.
+error. The October 25 regression now includes seven finite activation GPU
+cases, recorded in [GENERALIZATION_VALIDATION.md](GENERALIZATION_VALIDATION.md)
+and the [latest archive](validation/2026-10-25-regression/). These bounded samples
+do not establish accuracy across the full f32 range.
+
+### Wide-range exp diagnostic — October 25, 2026 (UTC)
+
+On 4097 values spanning [-80, 80], GPU exp failed at 251 values under the unchanged
+rtol=2e-6/atol=2e-7 threshold; the CPU model failed at 257. These thresholds come
+from existing local activation tests: there is no official tolerance for these
+new activation cases. The maximum relative GPU error over the full array was
+3.6186774e-6. One counterexample is x=44.609375: expected 2.363770999e19,
+actual 2.3637635225e19, relative error approximately 3.163e-6.
+
+This is an observed limitation, not a repaired failure. The minimal proposed
+change is range-reduced exp in the shared `Emitter.emit_math` path, followed by
+revalidation of affected operations. That change has not been implemented;
+compiler source remains at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
+No tolerances were relaxed. Full receipts and diagnostic details are linked in
+the validation report above.
 
 ## Single-block sum
 
@@ -123,7 +142,10 @@ allows scalar transforms before Accum. Each loop update, warp shuffle combine
 and shared-tree combine uses the same operation. Idle lanes use the pinned
 identity: 1 for multiply, -1e30 for maximum/amax and +1e30 for minimum. Local
 regressions cover all-negative maxima, tails, sum of squares and composed
-activations; these added variants have no new hardware receipts.
+activations. The October 25 regression adds three synthetic reduction GPU
+passes, including maximum and sum-of-squares variants; their receipts are in the
+[latest archive](validation/2026-10-25-regression/). These samples do not prove
+all extreme-value or synchronization variants.
 
 ## Fused, attention and atomic reductions
 
@@ -148,7 +170,8 @@ finite public matmul tolerances remain unchanged. See NVIDIA's
 [exp2](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-ex2)
 and [reduction](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#parallel-synchronization-and-communication-instructions-red) references.
 
-The final hardware run covered every public fixture on an RTX 5090 with original
-tolerances. a01's observed GPU error was 6.556510925292969e-7, while its mathematical
+The original October 25 public checkpoint covered every public fixture on an
+RTX 5090 with original tolerances. a01's observed GPU error was
+6.556510925292969e-7, while its mathematical
 CPU exp2 model had a slightly different error. This is consistent with the stated
 model limitation; no GPU approximation was substituted into the expected arrays.

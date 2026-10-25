@@ -9,8 +9,10 @@ expected-array comparison with the original tolerances.**
 [GPU receipts and results](docs/RUNNER_RESULTS.md) preserve every pass and the
 corrected matmul assembly failure. The local suite also checks changed shapes,
 operation combinations, ABI order and invalid IR.
-The current [local validation](docs/STATUS.md#shape-and-operation-generalization)
-passes **194 tests**.
+The latest [generalization validation](docs/GENERALIZATION_VALIDATION.md) passes
+**210 local tests**. Current public-artifact evidence consists of four fresh
+reduction GPU passes and eleven PTX hashes identical to earlier GPU-passed
+artifacts; only the four reductions were rerun.
 
 ## Setup
 
@@ -61,9 +63,14 @@ Python expressions internally, so this CLI is not suitable for hostile uploads.
 | Attention | a01–a02 | 2/2 PASS |
 | Matrix multiplication | m01–m02 | 2/2 PASS |
 
-The saved GPU runs cover these public fixtures. Changed operations and shapes are
-checked locally; their hardware validation is tracked separately. Each recorded
-GPU launch used no warmup and one iteration, so timings are illustrative.
+The saved GPU runs cover these public fixtures. The October 25 regression also
+passed 14 synthetic GPU cases: two odd-shaped matrix adds, seven activation cases,
+three reductions and two guarded attention cases. A separate wide-range exp
+diagnostic failed its unchanged threshold; it is an open numerical limitation,
+not a fixed defect or a hidden-set pass. Each recorded GPU launch used no warmup
+and one iteration, so timings are illustrative. See the
+[validation report](docs/GENERALIZATION_VALIDATION.md) and
+[latest evidence archive](docs/validation/2026-10-25-regression/).
 
 Local variants cover exp/tanh/sigmoid/SiLU/GELU and abs compositions, rank-2 add,
 row maximum, transformed reductions such as sum of squares, and conditional

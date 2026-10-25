@@ -1,0 +1,2 @@
+[s13_guarded_attention_5x11x7x6] 80 registers
+[s13_guarded_attention_5x11x7x6] PASS  matmul_1: max abs err 1.788e-07  (21.152 us)

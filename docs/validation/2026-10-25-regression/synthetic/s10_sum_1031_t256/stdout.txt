@@ -1,0 +1,2 @@
+[s10_sum_1031_t256] 17 registers
+[s10_sum_1031_t256] PASS  sum_1: max abs err 0.000e+00  (20.256 us)

@@ -1,0 +1,2 @@
+[s11_sum_squares_4099_t256] 18 registers
+[s11_sum_squares_4099_t256] PASS  sum_1: max abs err 0.000e+00  (20.64 us)

@@ -1,0 +1,2 @@
+[s04_tanh_193] 17 registers
+[s04_tanh_193] PASS  add: max abs err 1.192e-07  (27.36 us)

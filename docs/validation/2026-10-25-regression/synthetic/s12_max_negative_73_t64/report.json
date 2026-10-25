@@ -1,0 +1,80 @@
+{
+  "case": "s12_max_negative_73_t64",
+  "started_at_utc": "2026-10-25T17:08:24.523081+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "input_artifact_sha256": {
+    "expected.npz": "d80e20b89062476d5c56b8efe0fd7fecfaa4821b7f7c6ba199f8fe11cdbcf7b5",
+    "meta.json": "4ebb930c4d52916f093e60a5eb1c226677a542e8a5497d05d4c1c4dc9b1fbc4e",
+    "s12_max_negative_73_t64.ir.json": "d19bd6e1d49f48ac6f2d848a7b5f22825dc3a0e8895bd36a65952dcda7e68420"
+  },
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "started_at_utc": "2026-10-25T17:08:24.867276+00:00",
+      "request_sha256": "787d5aef4390be43e0a5838291d548539af3b691cd56465b2c7b0c3fecba3efd",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "finished_at_utc": "2026-10-25T17:08:25.236005+00:00",
+      "arch": "sm_120",
+      "cubin_id": "8768d4a9632980e579f589ae045906afd507731f8be08eb3e9c4412e39bb1f3e",
+      "entry_points": [
+        "s12_max_negative_73_t64"
+      ],
+      "registers": {
+        "s12_max_negative_73_t64": 17
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "started_at_utc": "2026-10-25T17:08:25.236552+00:00",
+      "request_sha256": "bc35d1a2e93e2b8a1cfb60f8b4967480868dbea19070d2f2bd787ca1af12aad7",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "finished_at_utc": "2026-10-25T17:08:25.416592+00:00",
+      "output_file": "run-01-output.npy",
+      "output_file_sha256": "60f90a0ac59e6ef26da5fd8d86150becb6107af25ecd79af88fcb625e1758f24",
+      "output_values_sha256": "f7633c73e09d4a62417e064b9d48969ffc0a8ed208ac7a19fdad5f840877dc92",
+      "output_name": "sum_1",
+      "output_shape": [
+        1
+      ],
+      "output_count": 1,
+      "comparison_passed": true,
+      "max_abs_error": 0.0,
+      "median_us": 20.384,
+      "iters": 1
+    }
+  ],
+  "passed": true,
+  "expected_output": "sum_1",
+  "expected_shape": [],
+  "output_shape": [
+    1
+  ],
+  "output_count": 1,
+  "comparison": {
+    "rtol": 0.0001,
+    "atol": 0.0001,
+    "equal_nan": false
+  },
+  "compiler_source_sha256": {
+    "compile.py": "6566ea6ceee78c90ec1f6fe263618c0deaca950ae8ab82a92093919f050d252d",
+    "emmy_ptx/__init__.py": "409d745f3e51e8f98afa8caa914dab182f6c0bf05ecdb40b065a1ac50677024c",
+    "emmy_ptx/cooperative.py": "a2548df7fe9a0c1902808ccf8adb6a7fa65044eb90a0a9a195229fcbdeedb1f8",
+    "emmy_ptx/errors.py": "2f1df9615e967fda28aba8aa45be98b2193182282257457b314395f0fc06fb54",
+    "emmy_ptx/loader.py": "03262725c29e163315fabbe7a322ea49446ec758601fd1a9b6bee98dd59257c1",
+    "emmy_ptx/matmul.py": "1b347373ab0449c5ad7b8fe2190b9e9e1e5c9728674cbda33d4599c185eca1d5",
+    "emmy_ptx/ptx.py": "fefc37da6e9ceb48fbb7a6bd7af0adaf4b2c1e391dc5fc6442d696c472eeac94",
+    "emmy_ptx/reduction.py": "79610ff87ef66ebe1519f383bab83233ea867f2a431fd7eccf832566b66ae2d5",
+    "emmy_ptx/structured.py": "c30c2a3b672bad626de1d9b03e1081a4edc46a6e3a808cce92545f9bb13d252e"
+  },
+  "uncertain_request": false,
+  "local_generation_exit_code": 0,
+  "ptx_sha256": "df3d55672f94de6c1cf8a03f909fbedf654c14f01ba2c9df2ab4faf850fe0e13",
+  "exit_code": 0,
+  "finished_at_utc": "2026-10-25T17:08:25.419654+00:00"
+}

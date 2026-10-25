@@ -1,0 +1,56 @@
+{
+  "problem": "r03_mean",
+  "started_at_utc": "2026-10-25T17:03:10.662606+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "3d1de8375b707408c2deee577fa62316a367909908da9ca716ddbf9f2791dbda",
+  "local_generation_exit_code": 0,
+  "expected_output": "mean",
+  "comparison": {
+    "rtol": 0.0001,
+    "atol": 0.0001,
+    "equal_nan": false
+  },
+  "expected_shape": [],
+  "output_shape": [
+    1
+  ],
+  "output_count": 1,
+  "max_return": 4096,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "fe7e406bedd35889ebd2c17debe7cdcddddded6f419c8769d2821f5d96d2b553",
+      "entry_points": [
+        "k_mean_ffcca3"
+      ],
+      "registers": {
+        "k_mean_ffcca3": 17
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 28.736,
+      "iters": 1,
+      "output_name": "mean",
+      "output_shape": [
+        1
+      ],
+      "output_count": 1,
+      "comparison_passed": true,
+      "max_abs_error": 9.313225746154785e-10
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T17:03:11.389733+00:00",
+  "uncertain_request": false
+}

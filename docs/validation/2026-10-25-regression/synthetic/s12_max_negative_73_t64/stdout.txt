@@ -1,0 +1,2 @@
+[s12_max_negative_73_t64] 17 registers
+[s12_max_negative_73_t64] PASS  sum_1: max abs err 0.000e+00  (20.384 us)

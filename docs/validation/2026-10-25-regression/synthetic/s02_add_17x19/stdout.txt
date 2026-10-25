@@ -1,0 +1,2 @@
+[s02_add_17x19] 12 registers
+[s02_add_17x19] PASS  matrix_sum: max abs err 0.000e+00  (28.256 us)

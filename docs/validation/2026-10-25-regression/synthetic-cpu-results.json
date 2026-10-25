@@ -1,0 +1,912 @@
+{
+  "case_count": 15,
+  "cases": [
+    {
+      "actual_finite": true,
+      "atol": 0.0,
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "case": "s01_add_7x13",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.021613,
+      "entry": "s01_add_7x13",
+      "equal_nan": false,
+      "expected_shape": [
+        7,
+        13
+      ],
+      "gpu_executed": false,
+      "grid": [
+        3,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0,
+      "max_relative_error_nonzero": 0.0,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "matrix_sum",
+      "provenance": {
+        "helper": "tests.test_structured.synthetic",
+        "inputs": "NumPy default_rng(seed).standard_normal(shape).astype(float32), official seed contract",
+        "launch": "existing synthetic helper block=32; grid=ceil(product(Tile.extents)/32)",
+        "oracle": "np.add(lhs, rhs, dtype=float32); exact comparison",
+        "test": "tests/test_pointwise_extended.py::test_rank_two_pointwise_add_with_two_axes_or_flattened_axis"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "a8a3b7d5a9412802e873e10a965d59eef06677949b4404a936a6fe4617eb6852",
+      "rtol": 0.0,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0,
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "case": "s02_add_17x19",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.003414,
+      "entry": "s02_add_17x19",
+      "equal_nan": false,
+      "expected_shape": [
+        17,
+        19
+      ],
+      "gpu_executed": false,
+      "grid": [
+        11,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0,
+      "max_relative_error_nonzero": 0.0,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "matrix_sum",
+      "provenance": {
+        "helper": "tests.test_structured.synthetic",
+        "inputs": "NumPy default_rng(seed).standard_normal(shape).astype(float32), official seed contract",
+        "launch": "existing synthetic helper block=32; grid=ceil(product(Tile.extents)/32)",
+        "oracle": "np.add(lhs, rhs, dtype=float32); exact comparison",
+        "test": "tests/test_pointwise_extended.py::test_rank_two_pointwise_add_with_two_axes_or_flattened_axis"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "afb460cfb3c46f66b0406564b8b88a4d1350f1279753ba974e41f1e2d212c81d",
+      "rtol": 0.0,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 2e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s03_exp_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001889,
+      "entry": "s03_exp_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0009765625,
+      "max_relative_error_nonzero": 4.780363468790167e-07,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "exp independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "97a1611ffdc7752997d42178aa6fc5d6874535a9226924721ecdada2a468fca8",
+      "rtol": 2e-06,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 2e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s04_tanh_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001374,
+      "entry": "s04_tanh_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 1.1920928955078125e-07,
+      "max_relative_error_nonzero": 1.3063360695848647e-07,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "tanh independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "396787d0d9a0a3c757006239f8bc5a02f2a9d08b121a1a1af58efb17f501a22a",
+      "rtol": 2e-06,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 2e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s05_sigmoid_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001158,
+      "entry": "s05_sigmoid_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 5.960464477539063e-08,
+      "max_relative_error_nonzero": 4.454917602162239e-07,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "sigmoid independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "b7f6edeecb11ceb79373ec642215a1a51c2a966dddd52bf3543a7f5d9f742e8b",
+      "rtol": 2e-06,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 2e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s06_silu_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001073,
+      "entry": "s06_silu_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 2.384185791015625e-07,
+      "max_relative_error_nonzero": 4.869463480890521e-07,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "silu independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "e4c74a7df566a22c3b1811156df42eb3877a3db8d7175c32574d6f6a4d97ed8d",
+      "rtol": 2e-06,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 6e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s07_erf_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001464,
+      "entry": "s07_erf_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 2.980232238769531e-07,
+      "max_relative_error_nonzero": 1.375048642345723e-06,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "erf independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "65c3c0a2e7c7b9894999804e85c795d9b5757268c3224064babb25ab199a5448",
+      "rtol": 2e-06,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 1e-06,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s08_gelu_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001439,
+      "entry": "s08_gelu_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 4.76837158203125e-07,
+      "max_relative_error_nonzero": 1.0,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "gelu independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "a2a6e18785c48ff802fa8cb9d21a3a22f01a5966516ab1a055044817f95393f7",
+      "rtol": 2e-05,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 1e-06,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s09_gelu_tanh_193",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.001274,
+      "entry": "s09_gelu_tanh_193",
+      "equal_nan": false,
+      "expected_shape": [
+        193
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 4.76837158203125e-07,
+      "max_relative_error_nonzero": 1.0,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "helper": "tests.test_numeric.scalar_fixture; unused second input removed with typed IR",
+        "oracle": "gelu_tanh independent NumPy/math formula matching existing test, finalized to float32",
+        "random": {
+          "count": 161,
+          "generator": "default_rng.uniform(-8,8).astype(float32)",
+          "seed": 202610251
+        },
+        "test": "tests/test_pointwise_extended.py",
+        "tolerance": "unchanged test_unary_activations_changed_sizes_and_inputs or test_erf_and_gelu_variants_against_independent_formulas",
+        "witness_description": "signed zeros, signed smallest subnormal, near-zero, neighboring f32 values around 0.125 and both GELU internal transition inputs; +/-1,+/-8",
+        "witness_input_f32_hex": [
+          "80000000",
+          "00000000",
+          "80000001",
+          "00000001",
+          "b3800000",
+          "33800000",
+          "b22bcc77",
+          "322bcc77",
+          "b58637bd",
+          "358637bd",
+          "bdffffff",
+          "3dffffff",
+          "be000000",
+          "3e000000",
+          "be000001",
+          "3e000001",
+          "be3504f2",
+          "3e3504f2",
+          "be3504f3",
+          "3e3504f3",
+          "be3504f4",
+          "3e3504f4",
+          "be203fab",
+          "3e203fab",
+          "be203fac",
+          "3e203fac",
+          "be203fad",
+          "3e203fad",
+          "bf800000",
+          "3f800000",
+          "c1000000",
+          "41000000"
+        ],
+        "witness_prefix_count": 32
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "0f67afb57a2c74965ed0e0f0d944dfb2de2c59172e33d9c4f9d78f824d375caa",
+      "rtol": 2e-05,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0001,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s10_sum_1031_t256",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.039933,
+      "entry": "s10_sum_1031_t256",
+      "equal_nan": false,
+      "expected_shape": [],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0,
+      "max_relative_error_nonzero": 0.0,
+      "mismatched_values": 0,
+      "model": "cooperative",
+      "output": "sum_1",
+      "provenance": {
+        "base": "pinned official r01_array_sum typed IR and unchanged 1e-4/1e-4 tolerance",
+        "helpers": [
+          "tests.test_reduction.sum_fixture",
+          "tests.test_reduction_composed.change_loop/change_reducer"
+        ],
+        "input_seed_used_before_explicit_data": 202610260,
+        "launch": "one CTA; Tile extent/block_threads, loop stride, warp scratch and tree length all changed together by sum_fixture",
+        "oracle": "float64(x).sum().astype(float32), same as public r01 reference"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "b5ebd86b3664abe2ad74929e679825aa9d06342bd57b18ea5b9b303cc7a41c54",
+      "rtol": 0.0001,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0001,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s11_sum_squares_4099_t256",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.097535,
+      "entry": "s11_sum_squares_4099_t256",
+      "equal_nan": false,
+      "expected_shape": [],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0,
+      "max_relative_error_nonzero": 0.0,
+      "mismatched_values": 0,
+      "model": "cooperative",
+      "output": "sum_1",
+      "provenance": {
+        "base": "pinned official r01_array_sum typed IR and unchanged 1e-4/1e-4 tolerance",
+        "helpers": [
+          "tests.test_reduction.sum_fixture",
+          "tests.test_reduction_composed.change_loop/change_reducer"
+        ],
+        "input_seed_used_before_explicit_data": 202610261,
+        "launch": "one CTA; Tile extent/block_threads, loop stride, warp scratch and tree length all changed together by sum_fixture",
+        "oracle": "sum(float64(x)**2, dtype=float64).astype(float32), public squared-norm reference precision"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "9baf32e011d14428c9a93ee13b175d17481469106d667898d0e4ab710b4d5c65",
+      "rtol": 0.0001,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0001,
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "case": "s12_max_negative_73_t64",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.007397,
+      "entry": "s12_max_negative_73_t64",
+      "equal_nan": false,
+      "expected_shape": [],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 0.0,
+      "max_relative_error_nonzero": 0.0,
+      "mismatched_values": 0,
+      "model": "cooperative",
+      "output": "sum_1",
+      "provenance": {
+        "base": "pinned official r01_array_sum typed IR and unchanged 1e-4/1e-4 tolerance",
+        "helpers": [
+          "tests.test_reduction.sum_fixture",
+          "tests.test_reduction_composed.change_loop/change_reducer"
+        ],
+        "input_seed_used_before_explicit_data": 202610262,
+        "launch": "one CTA; Tile extent/block_threads, loop stride, warp scratch and tree length all changed together by sum_fixture",
+        "oracle": "max(float64(x)).astype(float32); final tail element is the strictly negative maximum"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "df3d55672f94de6c1cf8a03f909fbedf654c14f01ba2c9df2ab4faf850fe0e13",
+      "rtol": 0.0001,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0001,
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "case": "s13_guarded_attention_5x11x7x6",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.032904,
+      "entry": "s13_guarded_attention_5x11x7x6",
+      "equal_nan": false,
+      "expected_shape": [
+        5,
+        6
+      ],
+      "gpu_executed": false,
+      "grid": [
+        3,
+        1,
+        1
+      ],
+      "max_abs_error": 8.940696716308594e-08,
+      "max_relative_error_nonzero": 6.092834849065629e-07,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "matmul_1",
+      "provenance": {
+        "helper": "tests.test_conditionals.guarded_attention(5,11,7,6)",
+        "launch": "unchanged helper launch including padded axes and extra guard CTA",
+        "oracle": "float64 Q@KT / actual f32 runtime scale; stable float64 softmax @ float64 V; output float32",
+        "tolerance": "unchanged original a02 metadata: 1e-3/1e-4"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "96510e81fb936372ddda98740073aaaebde89dad68d20c6ffffa6e1af6a64a2d",
+      "rtol": 0.001,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 0.0001,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s14_generated_greedy_attention_5x9x7x11",
+      "cpu_result": "PASS",
+      "diagnostic": false,
+      "elapsed_seconds": 0.243221,
+      "entry": "k_matmul_softmax_reduce_eda2a3",
+      "equal_nan": false,
+      "expected_shape": [
+        5,
+        11
+      ],
+      "gpu_executed": false,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "max_abs_error": 1.7881393432617188e-07,
+      "max_relative_error_nonzero": 5.599420230521705e-06,
+      "mismatched_values": 0,
+      "model": "structured",
+      "output": "result",
+      "provenance": {
+        "generation": "previously saved fresh high-level Graph -> official KERNEL_PASSES, greedy; no regeneration script executed here",
+        "launch_and_tolerance": "saved metadata unchanged; IR filename changed to exact entry.ir.json",
+        "oracle": "float64 Q@KT / actual f32 runtime scale; stable float64 softmax @ float64 V; output float32",
+        "source_entry_preserved": true,
+        "source_ir": "docs/validation/2026-10-24-generalization/generated-attention/greedy/5x9x7x11/result.ir.json",
+        "source_ir_sha256": "37bbc42abb9b07e00fb4c2140e625cf82b345fed4483859672de1884d19a1f34",
+        "source_meta_sha256": "d7801641ad512d0835a33e0cc440fe2384839f30524deaa6e29307ca79c6e451"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "eb535b69dc075f853b4c583a4b00ec5ba2e3fcfe1692188fe80481bff812e5bb",
+      "rtol": 0.001,
+      "stores_once": true
+    },
+    {
+      "actual_finite": true,
+      "atol": 2e-07,
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "case": "s15_exp_wide_4097",
+      "cpu_result": "FAIL",
+      "diagnostic": true,
+      "elapsed_seconds": 0.002583,
+      "entry": "s15_exp_wide_4097",
+      "equal_nan": false,
+      "expected_shape": [
+        4097
+      ],
+      "failure": "\nNot equal to tolerance rtol=2e-06, atol=2e-07\n\nMismatched elements: 257 / 4097 (6.27%)\nFirst 5 mismatches are at indices:\n [3185]: 1.944388896991635e+19 (ACTUAL), 1.944384938749775e+19 (DESIRED)\n [3188]: 2.1861259841581875e+19 (ACTUAL), 2.1861308220093497e+19 (DESIRED)\n [3190]: 2.3637633026440036e+19 (ACTUAL), 2.363770999225398e+19 (DESIRED)\n [3193]: 2.657653524850855e+19 (ACTUAL), 2.6576592423113196e+19 (DESIRED)\n [3195]: 2.8736055250297815e+19 (ACTUAL), 2.873614760927455e+19 (DESIRED)\nMax absolute difference among violations: 1.3864928e+29\nMax relative difference among violations: 3.6718247e-06\n ACTUAL: array([1.804851e-35, 1.876752e-35, 1.951507e-35, ..., 5.124245e+34,\n       5.328354e+34, 5.540624e+34], shape=(4097,), dtype=float32)\n DESIRED: array([1.804851e-35, 1.876748e-35, 1.951510e-35, ..., 5.124238e+34,\n       5.328364e+34, 5.540622e+34], shape=(4097,), dtype=float32)",
+      "failure_type": "AssertionError",
+      "gpu_executed": false,
+      "grid": [
+        17,
+        1,
+        1
+      ],
+      "max_abs_error": 1.3864928439996259e+29,
+      "max_relative_error_nonzero": 3.725109087158825e-06,
+      "mismatched_values": 257,
+      "model": "structured",
+      "output": "add",
+      "provenance": {
+        "input": "np.linspace(-80,80,4097,dtype=float32)",
+        "oracle": "np.exp(input.astype(float64)).astype(float32)",
+        "purpose": "preserve a known test-discovered wide-range exp accuracy limitation; no tolerance relaxation or compiler change",
+        "runner_note": "one output has 4097 elements, so a subsequent authorized runner must request max_return>=4097",
+        "tolerance": "unchanged activation exp threshold 2e-6/2e-7"
+      },
+      "ptx_assembled": false,
+      "ptx_sha256": "88d38e7e42a18c623aa30e4e59d1f21d254b645b28799fbc9039778665934ed1",
+      "rtol": 2e-06,
+      "stores_once": true
+    }
+  ],
+  "compiler_commit": "0e16a83235a8b2180a9c40dc4ede06b8aa33d511",
+  "compiler_files": {
+    "emmy_ptx/__init__.py": "409d745f3e51e8f98afa8caa914dab182f6c0bf05ecdb40b065a1ac50677024c",
+    "emmy_ptx/cooperative.py": "a2548df7fe9a0c1902808ccf8adb6a7fa65044eb90a0a9a195229fcbdeedb1f8",
+    "emmy_ptx/errors.py": "2f1df9615e967fda28aba8aa45be98b2193182282257457b314395f0fc06fb54",
+    "emmy_ptx/loader.py": "03262725c29e163315fabbe7a322ea49446ec758601fd1a9b6bee98dd59257c1",
+    "emmy_ptx/matmul.py": "1b347373ab0449c5ad7b8fe2190b9e9e1e5c9728674cbda33d4599c185eca1d5",
+    "emmy_ptx/ptx.py": "fefc37da6e9ceb48fbb7a6bd7af0adaf4b2c1e391dc5fc6442d696c472eeac94",
+    "emmy_ptx/reduction.py": "79610ff87ef66ebe1519f383bab83233ea867f2a431fd7eccf832566b66ae2d5",
+    "emmy_ptx/structured.py": "c30c2a3b672bad626de1d9b03e1081a4edc46a6e3a808cce92545f9bb13d252e"
+  },
+  "complete": true,
+  "equal_nan": false,
+  "fail_count": 1,
+  "gpu_executed": false,
+  "pass_count": 14,
+  "ptx_assembled": false
+}

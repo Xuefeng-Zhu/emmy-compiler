@@ -1,0 +1,2 @@
+[s08_gelu_193] 17 registers
+[s08_gelu_193] PASS  add: max abs err 4.768e-07  (20.832 us)

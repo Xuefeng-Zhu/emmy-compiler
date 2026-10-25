@@ -1,6 +1,33 @@
 # Build status
 
-Recorded public GPU checkpoint: October 25, 2026 (UTC).
+## Latest regression checkpoint — October 25, 2026 (UTC)
+
+Compiler source remains at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
+The existing 194-test suite passed again in 134.921 seconds (exit 0). With eight
+new CPU checks and eight mocked-client tests, **210 tests passed in 138.357
+seconds, exit 0**.
+
+Current r01–r04 artifacts each passed official assembly, GPU execution and the
+original expected-array comparison. Eleven other public PTX artifacts are
+byte-identical to their earlier GPU-passed versions. This restores evidence for
+all 15 current public artifacts without claiming that all 15 were rerun.
+
+Fourteen normal synthetic cases passed on the RTX 5090: two odd-shaped matrix adds,
+seven activation cases, three reductions and two guarded attention cases. The
+separate 4097-value exp diagnostic over [-80, 80] failed at 251 GPU values under
+unchanged rtol=2e-6/atol=2e-7; the CPU model failed at 257 values. The diagnostic
+threshold comes from existing local tests, not a new official activation
+problem. No threshold was weakened, and no compiler fix was applied.
+
+All 19 new compile requests and 19 GPU requests completed with known outcomes:
+zero retries and zero uncertain requests. They include the diagnostic failure;
+completion does not mean every numerical comparison passed. See
+[GENERALIZATION_VALIDATION.md](GENERALIZATION_VALIDATION.md) for the exact scope,
+commands, exp counterexample and proposed next fix, and the
+[latest evidence archive](validation/2026-10-25-regression/) for retained records.
+Hidden-set and universal-input correctness remain unproven.
+
+## Historical public GPU checkpoint — October 25, 2026 (UTC)
 
 **15/15 public problems passed official PTX assembly, GPU execution and expected
 output comparison. The corresponding local checkpoint passed 169 tests.** The observed runner was an NVIDIA
@@ -21,18 +48,20 @@ runner requests.
 
 ## Shape and operation generalization
 
-Local validation on October 24, 2026 (America/Los_Angeles): **194 tests passed
+Historical checkpoint: October 24, 2026 (America/Los_Angeles). **194 tests passed
 in 152.886 seconds**. This adds 25 tests to the public GPU checkpoint, covering
 activation compositions, rank-2 add, transformed/cooperative max reductions,
 conditional attention, branch scopes and guarded output ownership. An additional
 focused conditional run passed all eight tests, including conjunction/disjunction
 and equality guards. Original public tolerances remain unchanged.
 
-The current CLI compiles all 15 public fixtures. Eleven PTX artifacts remain
-byte-identical to their GPU-passed versions. The four reduction artifacts changed
-because they now use common structured address/arithmetic emission; their local
-models pass, and the saved hardware receipts describe the earlier artifacts.
-This validation made no remote GPU requests.
+At that checkpoint the CLI compiled all 15 public fixtures. Eleven PTX artifacts
+remained
+byte-identical to their GPU-passed versions. The four reduction artifacts had
+changed to common structured address/arithmetic emission; their local models
+passed, while the saved hardware receipts still described earlier artifacts.
+That local checkpoint made no remote GPU requests. The latest regression above
+supersedes this hardware-evidence gap with fresh r01–r04 GPU passes.
 
 [Full test log](validation/2026-10-24-generalization/local-tests.txt),
 [focused conditional log](validation/2026-10-24-generalization/conditional-tests.txt),

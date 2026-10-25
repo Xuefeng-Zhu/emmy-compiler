@@ -13,9 +13,20 @@ pinned TASK.md/MVP.md listed in CHALLENGE.md.
 - Original code performs direct IR-to-PTX lowering; unsupported contracts fail.
 - Local parser, ABI, address, numeric-model and malformed-IR tests are available
   with `python -m unittest discover -s tests -v`.
-- NVIDIA validation is complete for all 15 public fixtures, including the eight
-  basic problems. The remaining eleven were run after separate explicit approval.
-- Hidden tests, GPU exceptional values and sustained performance remain untested.
+- All 15 current public artifacts have matching GPU evidence: the latest session
+  reran r01–r04 successfully and verified the other eleven PTX hashes unchanged
+  from earlier passes. Original official tolerances remain intact.
+- Latest local validation: 210 tests passed in 138.357 seconds, exit 0. This
+  includes eight new CPU checks and eight mocked-client tests.
+- Fourteen normal synthetic GPU cases passed. A separate wide-range exp
+  diagnostic failed at 251 of 4097 values under its unchanged local threshold;
+  the shared range-reduced-exp proposal is not implemented.
+- [Generalization validation](GENERALIZATION_VALIDATION.md) and the
+  [latest evidence archive](validation/2026-10-25-regression/) record this bounded
+  test checkpoint. Compiler source remained at
+  `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`; no production change or push was made.
+- Hidden tests, universal exceptional-input behavior and sustained performance
+  remain unverified. The exp diagnostic must not be presented as fixed.
 
 ## User-owned prerequisites
 
@@ -47,8 +58,9 @@ have GPU PASS receipts.
   zero-before-atomic contract. Choose one detail you understand well.
 - **2:50–3:35 — Evidence.** Run local tests; distinguish a CPU instruction model
   from PTX assembly/GPU output comparison. Show actual retained GPU receipts.
-- **3:35–4:00 — What the evidence covers.** Show the distinction between saved
-  public GPU results and local regressions for changed shapes and operations.
+- **3:35–4:00 — What the evidence covers.** Distinguish current public-artifact
+  GPU evidence, the 14 passing synthetic GPU cases and CPU-model checks. Show
+  the wide-range exp counterexample and explain that the proposed fix is pending.
 
 The [Chinese walkthrough](WALKTHROUGH.md) expands this outline around the common
 emission layer and schedule-specific extensions. A recording still needs to be

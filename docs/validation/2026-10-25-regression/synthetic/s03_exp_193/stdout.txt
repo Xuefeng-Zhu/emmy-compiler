@@ -1,0 +1,2 @@
+[s03_exp_193] 12 registers
+[s03_exp_193] PASS  add: max abs err 7.324e-04  (20.224 us)

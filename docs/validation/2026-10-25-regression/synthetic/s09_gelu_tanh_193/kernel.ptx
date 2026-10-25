@@ -1,0 +1,58 @@
+.version 8.0
+.target sm_89
+.address_size 64
+
+.visible .entry s09_gelu_tanh_193(
+    .param .u64 param_x0,
+    .param .u64 param_add
+)
+{
+    .reg .pred %p<2>;
+    .reg .b32 %r<4>;
+    .reg .b64 %rd<8>;
+    .reg .f32 %f<25>;
+    ld.param.u64 %rd0, [param_x0];
+    cvta.to.global.u64 %rd1, %rd0;
+    ld.param.u64 %rd2, [param_add];
+    cvta.to.global.u64 %rd3, %rd2;
+    mov.u32 %r0, %tid.x;
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mad.lo.u32 %r3, %r1, %r2, %r0;
+    setp.ge.u32 %p0, %r3, 193;
+    @%p0 bra DONE;
+    mul.wide.u32 %rd4, %r3, 4;
+    add.u64 %rd5, %rd1, %rd4;
+    ld.global.f32 %f0, [%rd5+0];
+    mul.rn.f32 %f2, %f0, %f0;
+    mul.rn.f32 %f3, %f2, %f0;
+    mul.rn.f32 %f4, 0f3d372713, %f3;
+    add.rn.f32 %f5, %f0, %f4;
+    mul.rn.f32 %f6, 0f3f4c422a, %f5;
+    abs.f32 %f8, %f6;
+    mul.rn.f32 %f9, %f8, 0fc0000000;
+    mul.rn.f32 %f11, %f9, 0f3fb8aa3b;
+    ex2.approx.f32 %f10, %f11;
+    sub.rn.f32 %f12, 0f3f800000, %f10;
+    add.rn.f32 %f13, 0f3f800000, %f10;
+    div.rn.f32 %f14, %f12, %f13;
+    copysign.f32 %f7, %f6, %f14;
+    mul.rn.f32 %f15, %f6, %f6;
+    mul.rn.f32 %f16, 0fbd5d0dd1, %f15;
+    add.rn.f32 %f17, %f16, 0f3e088889;
+    mul.rn.f32 %f18, %f17, %f15;
+    add.rn.f32 %f19, %f18, 0fbeaaaaab;
+    mul.rn.f32 %f20, %f19, %f15;
+    add.rn.f32 %f21, %f20, 0f3f800000;
+    mul.rn.f32 %f22, %f6, %f21;
+    setp.le.f32 %p1, %f8, 0f3e000000;
+    selp.f32 %f7, %f22, %f7, %p1;
+    add.rn.f32 %f23, 0f3f800000, %f7;
+    mul.rn.f32 %f24, 0f3f000000, %f0;
+    mul.rn.f32 %f1, %f24, %f23;
+    mul.wide.u32 %rd6, %r3, 4;
+    add.u64 %rd7, %rd3, %rd6;
+    st.global.f32 [%rd7+0], %f1;
+DONE:
+    ret;
+}

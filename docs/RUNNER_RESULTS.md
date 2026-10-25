@@ -1,6 +1,43 @@
 # Official runner validation
 
-## Final public coverage — October 25, 2026 (UTC)
+## Latest regression — October 25, 2026 (UTC)
+
+Compiler source was unchanged at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
+The RTX 5090 assembled and ran the current r01–r04 PTX, each with actual PASS and
+exit 0 under the original official tolerances:
+
+| Case | Max absolute error | Single iteration, us |
+| --- | ---: | ---: |
+| r01_array_sum | 3.814697e-6 | 21.120 |
+| r02_big_sum | 1.525879e-5 | 37.280 |
+| r03_mean | 9.313226e-10 | 28.736 |
+| r04_row_sum | 5.722046e-6 | 21.312 |
+
+Eleven other public PTX artifacts were checked byte-identical to their earlier
+GPU-passed versions. All 15 current public artifacts therefore have matching GPU
+evidence; only the four reductions were rerun in this session.
+
+Fourteen normal synthetic cases also passed assembly, GPU execution and local
+comparison: two odd-shaped matrix adds, seven activation cases, three reductions and
+two guarded attention cases. The additional wide-range exp diagnostic over
+4097 values in [-80, 80] completed but **failed** at 251 values under its unchanged
+rtol=2e-6/atol=2e-7 threshold. That threshold comes from existing local tests;
+there is no official problem tolerance for the new activation cases. The CPU
+model failed at 257 values. No threshold was loosened or failure counted as PASS.
+
+The session made 19 compile and 19 GPU requests, all with known completion,
+zero retries and zero uncertain requests. Timings are single-iteration device
+measurements, not stable benchmarks. No compiler fix was made. The original
+194-test suite passed in 134.921 seconds; with eight CPU and eight mocked-client
+checks added, 210 local tests passed in 138.357 seconds (both exit 0).
+
+See [GENERALIZATION_VALIDATION.md](GENERALIZATION_VALIDATION.md) for exact
+commands, request accounting and the exp counterexample, and the
+[latest evidence archive](validation/2026-10-25-regression/) for receipts and
+complete output hashes. This test session did not push or change production
+compiler code. The historical records below retain their original measurements.
+
+## Historical first full public coverage — October 25, 2026 (UTC)
 
 **All 15 public cases passed PTX assembly, GPU execution and the unchanged official
 expected-array comparison.** Every successful official-client and wrapper exit
@@ -34,7 +71,8 @@ exact stdout/stderr files in the same directory.
 [latest health](validation/2026-10-25/remaining-public/health.json),
 [final 169-test local log](validation/2026-10-25/remaining-public/all-public-local-tests.txt).
 
-The new session ran only the remaining eleven public cases, sequentially. It made
+That historical session ran only the remaining eleven public cases, sequentially.
+It made
 12 compile requests and 11 GPU launches; there are no uncertain outcomes. The
 previous four pointwise cases were preserved, not rerun. No Python source, private
 repository files, credentials or private inputs were uploaded. Requests contained
@@ -51,7 +89,7 @@ enough values for matrix outputs (262144 for m01), within official service limit
 The scalar expected shape `()` is deliberately compared with the descriptor's
 one-element buffer after reshape. No expected array or tolerance was changed.
 
-### Exact new commands and the corrected assembly failure
+### Historical commands and the corrected assembly failure
 
 Executed serially from the project root:
 
@@ -92,8 +130,8 @@ The tested client wrapper and local failure-capture correction are in `7ad6d98`.
 No other new case needed a retry, and no failed/queued result was counted as PASS.
 
 These finite public inputs do not validate every hidden shape, exceptional value,
-atomic ordering or performance scenario. The historical checkpoints below remain
-for provenance; their older coverage counts are superseded by the table above.
+atomic ordering or performance scenario. The earlier checkpoints below remain for
+provenance; the latest regression section records the current artifact evidence.
 
 ## p02 and p03 — October 25, 2026 (UTC)
 
@@ -153,11 +191,12 @@ name/payload validation and rejection of malformed or NaN results; those mock
 executions neither contacted the service nor overwrote real receipts.
 
 The four earlier commits through 519fc60 were pushed to the existing private
-repository and its main SHA/privacy verified before these runs. This new wrapper
-and result commit remains local; no later push is included. At that checkpoint public pointwise
-coverage was four of four, while the eight-problem MVP still needed reductions.
-All GPU evidence covers finite public fixtures only. The NaN contract conflict in
-NUMERICS.md remains unresolved; no exceptional-input GPU test ran.
+repository and its main SHA/privacy verified before these runs. At that checkpoint
+the new wrapper and result commit remained local; no later push was included in
+that record. Public pointwise coverage was four of four, while the eight-problem
+MVP still needed reductions. That checkpoint's GPU evidence covered finite public
+fixtures only. The NaN contract conflict in NUMERICS.md remains unresolved;
+no exceptional-input GPU test ran in that session.
 
 ## Earlier p00 and p01 validation
 
@@ -266,7 +305,8 @@ cases were sent to the documented HTTP service. No Python source, repository,
 personal information or credentials were sent. No paid service, signup, legal
 agreement, broader test suite, OKC resource or Modal job was used.
 
-That first checkpoint covered two problems. The later p02/p03 results above bring
-public pointwise GPU coverage to four, still short of the eight-problem MVP.
-Reductions, later categories, hidden variants and exceptional-value GPU behavior
-remain unverified. Future remote tests and pushes require separate authorization.
+That first checkpoint covered two problems. At the subsequent p02/p03 checkpoint,
+public pointwise GPU coverage reached four, then still short of the eight-problem
+MVP. Reductions and later categories were unverified at that time; later sections
+above record their completed public validation. Hidden and exceptional-value
+coverage remains limited. Further remote tests and pushes require authorization.

@@ -1,0 +1,2 @@
+[s07_erf_193] 14 registers
+[s07_erf_193] PASS  add: max abs err 2.384e-07  (20.32 us)
