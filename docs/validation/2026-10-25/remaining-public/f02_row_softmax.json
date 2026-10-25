@@ -1,0 +1,61 @@
+{
+  "problem": "f02_row_softmax",
+  "started_at_utc": "2026-10-25T06:09:15.726750+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "97228c0a06c60138a42a689c0fdbc533b48bc74103108efac83ad13204069eee",
+  "local_generation_exit_code": 0,
+  "expected_output": "softmax",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 1e-05,
+    "equal_nan": false
+  },
+  "expected_shape": [
+    64,
+    256
+  ],
+  "output_shape": [
+    64,
+    256
+  ],
+  "output_count": 16384,
+  "max_return": 16384,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "12fbfb819d27e544af04708294122e0356811a91553a9bd2ef15b289e3e8cea2",
+      "entry_points": [
+        "k_softmax_05263d"
+      ],
+      "registers": {
+        "k_softmax_05263d": 22
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 22.272,
+      "iters": 1,
+      "output_name": "softmax",
+      "output_shape": [
+        64,
+        256
+      ],
+      "output_count": 16384,
+      "comparison_passed": true,
+      "max_abs_error": 7.450580596923828e-09
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T06:09:17.280878+00:00",
+  "uncertain_request": false
+}

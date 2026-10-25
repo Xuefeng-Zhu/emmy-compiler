@@ -1,0 +1,61 @@
+{
+  "problem": "a02_attention_128",
+  "started_at_utc": "2026-10-25T06:10:05.694024+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "752f64627a01de125f4aeeccdb02a9ce64391aefc495ceae95c2aa44276bc4d7",
+  "local_generation_exit_code": 0,
+  "expected_output": "matmul_1",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "equal_nan": false
+  },
+  "expected_shape": [
+    128,
+    32
+  ],
+  "output_shape": [
+    128,
+    32
+  ],
+  "output_count": 4096,
+  "max_return": 4096,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "25de40099809d71a3393f42ae792bdec2918a0e9b05113f15239ca0bb51f2b4e",
+      "entry_points": [
+        "k_matmul_softmax_reduce_6f0029"
+      ],
+      "registers": {
+        "k_matmul_softmax_reduce_6f0029": 80
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 49.024,
+      "iters": 1,
+      "output_name": "matmul_1",
+      "output_shape": [
+        128,
+        32
+      ],
+      "output_count": 4096,
+      "comparison_passed": true,
+      "max_abs_error": 4.76837158203125e-07
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T06:10:06.957530+00:00",
+  "uncertain_request": false
+}

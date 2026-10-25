@@ -1,0 +1,61 @@
+{
+  "problem": "f01_rmsnorm",
+  "started_at_utc": "2026-10-25T06:08:54.906710+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "be81e0e38b2666d47c8455c220e3d91e1a714b084c2e6f39ea265024739ae8a7",
+  "local_generation_exit_code": 0,
+  "expected_output": "mul_1",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "equal_nan": false
+  },
+  "expected_shape": [
+    64,
+    1024
+  ],
+  "output_shape": [
+    64,
+    1024
+  ],
+  "output_count": 65536,
+  "max_return": 65536,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "917b739898b837b1182d347416a0e31e9f3f951f3454eaf2fa5dd6985ef22d86",
+      "entry_points": [
+        "k_mean_cbd1de"
+      ],
+      "registers": {
+        "k_mean_cbd1de": 21
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 15.488,
+      "iters": 1,
+      "output_name": "mul_1",
+      "output_shape": [
+        64,
+        1024
+      ],
+      "output_count": 65536,
+      "comparison_passed": true,
+      "max_abs_error": 1.9073486328125e-06
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T06:08:56.938442+00:00",
+  "uncertain_request": false
+}

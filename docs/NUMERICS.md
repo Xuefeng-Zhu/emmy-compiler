@@ -73,12 +73,40 @@ rendezvous. This follows the validated IR schedule rather than serial summation.
 The NumPy oracle accumulates at higher precision before conversion; different
 rounding order is expected and the original per-case tolerances are unchanged.
 The r01/r02 CPU-model errors are 3.814697265625e-6 and 1.52587890625e-5.
-No NVIDIA assembly or execution has been performed for these reductions.
-Subnormal and exceptional reduction behavior has not been established on GPU.
+All four public reduction fixtures subsequently passed NVIDIA assembly and GPU
+comparison. Subnormal and exceptional reduction behavior remains unverified.
 
 Mean applies `div.rn.f32` to the completed f32 sum and a value loaded from its
 runtime divisor buffer; no constant reciprocal is substituted. Row sum uses the
 same arithmetic independently per row. Local CPU-model errors against the r03
 and r04 float64-based oracles are 9.313225746154785e-10 and 5.7220458984375e-6;
-original tolerances remain unchanged. No new exceptional-input or GPU claim is
-implied by these finite public fixtures.
+original tolerances remain unchanged. The corresponding official GPU fixtures passed with the same errors; this does
+not imply exceptional-input coverage.
+
+## Fused, attention and atomic reductions
+
+Structured operations add explicit `sub.rn.f32`, `div.rn.f32`, `sqrt.rn.f32`,
+NaN-propagating min/max and a natural-exp sequence `mul.rn.f32 log2(e)` followed
+by `ex2.approx.f32`. The local models calculate mathematical float32 exp2; they
+do not model the exact approximation error of GPU exp2. All finite public fused/attention fixtures subsequently passed GPU comparison;
+that is still not a bound on every input or GPU target. RMSNorm reads count, epsilon and weights from runtime
+buffers; L2Norm does not inject an epsilon absent from IR.
+
+Emmy's maximum identity is finite `-1e30`. Online-softmax state initialization
+preserves that value. Extremely negative inputs, infinities, all-zero L2 rows
+and other exceptional cases are not a universal supported-input promise. Zero
+L2 rows can produce NaNs under the direct expression, while the official checker
+rejects NaN/NaN. The earlier CUDA/expected-generation maximum discrepancy remains.
+
+Split-K emits `red.global.add.f32`, whose global-memory form flushes subnormal
+inputs/results. Its addition order also depends on CTA scheduling; the CPU model
+checks a deterministic order and does not enumerate every hardware ordering.
+Ordinary multiply/add instructions remain separately rounded and unfused. The
+finite public matmul tolerances remain unchanged. See NVIDIA's
+[exp2](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-ex2)
+and [reduction](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#parallel-synchronization-and-communication-instructions-red) references.
+
+The final hardware run covered every public fixture on an RTX 5090 with original
+tolerances. a01's observed GPU error was 6.556510925292969e-7, while its mathematical
+CPU exp2 model had a slightly different error. This is consistent with the stated
+model limitation; no GPU approximation was substituted into the expected arrays.

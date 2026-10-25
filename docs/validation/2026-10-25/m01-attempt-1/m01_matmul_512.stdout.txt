@@ -1,0 +1,4 @@
+[k_matmul_2967be] ptxas rejected it:
+ptxas input.ptx, line 16; fatal   : Parsing error near '.shared': syntax error
+ptxas fatal   : Ptx assembly aborted due to errors
+

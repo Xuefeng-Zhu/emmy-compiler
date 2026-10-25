@@ -1,0 +1,38 @@
+{
+  "problem": "m01_matmul_512",
+  "started_at_utc": "2026-10-25T06:11:31.150586+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "abbdab1cea922de1affd83fabd9c8da85745d1f2bb02c112018a60e8030bd2fd",
+  "local_generation_exit_code": 0,
+  "expected_output": "matmul",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 0.001,
+    "equal_nan": false
+  },
+  "expected_shape": [
+    512,
+    512
+  ],
+  "output_shape": [
+    512,
+    512
+  ],
+  "output_count": 262144,
+  "max_return": 262144,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": false,
+      "stage": "ptxas",
+      "stderr": "ptxas input.ptx, line 16; fatal   : Parsing error near '.shared': syntax error\nptxas fatal   : Ptx assembly aborted due to errors\n",
+      "arch": "sm_120"
+    }
+  ],
+  "exit_code": 1,
+  "passed": false,
+  "finished_at_utc": "2026-10-25T06:11:35.259633+00:00",
+  "uncertain_request": false
+}

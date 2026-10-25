@@ -1,0 +1,56 @@
+{
+  "problem": "r02_big_sum",
+  "started_at_utc": "2026-10-25T06:06:54.326392+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "ad52fac82b3be39cf0d22253cfb09d20b78ca16457cd4d9a0b46f58a332bf541",
+  "local_generation_exit_code": 0,
+  "expected_output": "sum_1",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 0.001,
+    "equal_nan": false
+  },
+  "expected_shape": [],
+  "output_shape": [
+    1
+  ],
+  "output_count": 1,
+  "max_return": 4096,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "0bcf84405f2dbe6a5591e802eb6927f008b16621b92e2b0c04b594c9d1a8ae51",
+      "entry_points": [
+        "k_sum_1_reduce"
+      ],
+      "registers": {
+        "k_sum_1_reduce": 17
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 36.672,
+      "iters": 1,
+      "output_name": "sum_1",
+      "output_shape": [
+        1
+      ],
+      "output_count": 1,
+      "comparison_passed": true,
+      "max_abs_error": 1.52587890625e-05
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T06:06:56.428953+00:00",
+  "uncertain_request": false
+}

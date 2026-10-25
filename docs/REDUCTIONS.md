@@ -48,24 +48,17 @@ tolerances pass with `equal_nan=False`. Rank-0 expected arrays are compared afte
 reshaping the one-element modeled output, without changing the tolerance.
 
 This checks our emitted control/data flow, not PTX assembler acceptance, NVIDIA
-warp scheduling, the full hardware memory model or performance. The existing
-runner wrapper only permits p00–p03 and must be separately adapted for scalar
-expected shapes before reduction validation. No reduction PTX has been uploaded.
+warp scheduling, the full hardware memory model or performance. The wrapper was subsequently adapted and independently tested for scalar
+expected shapes and all public outputs. All four reduction fixtures now have
+official GPU PASS receipts, with the same errors as their local models.
 
-A later minimal request can contain each generated PTX string plus the public
-launch descriptors preserved in
-[the local result record](validation/2026-10-25/reduction-local-results.json):
-`k_sum_1_reduce`, grid `(1,1,1)`, block `(128,1,1)`, no dynamic shared memory,
-x f32[1024] or f32[65536] with seed 0, and output sum_1 f32[1]. Use one iteration
-and no warmup; upload no Python source, private data or credentials. That request
-would require separate authorization for the official HTTP runner.
+The authorized validation used exactly the public launch descriptors preserved
+in the historical local records, with no warmup and one iteration. r01/r02 use
+grid 1, block 128, x[1024]/x[65536] and scalar output[1]. r03 adds its runtime
+divisor; r04 uses x[64,512], output[64], grid64 and block128. Dynamic shared memory
+is zero; static warp partials live in PTX. No Python source or private input data
+was uploaded. See [RUNNER_RESULTS.md](RUNNER_RESULTS.md) for actual receipts.
 
-PTX synchronization semantics were checked against NVIDIA's
-[shuffle reference](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-shfl-sync) and
-[barrier reference](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#parallel-synchronization-and-communication-instructions-bar).
-
-The mean/row-sum [local record](validation/2026-10-25/basic-eight-local-results.json)
-preserves their exact proposed public launch descriptors. These also remain
-unsent: r03 uses x[32768], runtime count[1], scalar output[1], grid 1 and block
-128; r04 uses x[64,512], output[64], grid 64 and block 128. Both use dynamic shared
-memory 0. Approving local development does not approve these runner requests.
+PTX synchronization was checked against NVIDIA's
+[shuffle](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-shfl-sync) and
+[barrier](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#parallel-synchronization-and-communication-instructions-bar) references.

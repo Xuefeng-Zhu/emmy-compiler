@@ -1,0 +1,61 @@
+{
+  "problem": "f03_l2norm",
+  "started_at_utc": "2026-10-25T06:08:28.657151+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "e452869238ed9a31e71fecd581baba3299d48f7e322e7ba6634bf7e79a6c2424",
+  "local_generation_exit_code": 0,
+  "expected_output": "div",
+  "comparison": {
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "equal_nan": false
+  },
+  "expected_shape": [
+    64,
+    512
+  ],
+  "output_shape": [
+    64,
+    512
+  ],
+  "output_count": 32768,
+  "max_return": 32768,
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "arch": "sm_120",
+      "cubin_id": "9170e76d50d545a245223293fb42a8a71a6351063a6a286c148a3d00dba1be4c",
+      "entry_points": [
+        "k_div_reduce"
+      ],
+      "registers": {
+        "k_div_reduce": 20
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 16.576,
+      "iters": 1,
+      "output_name": "div",
+      "output_shape": [
+        64,
+        512
+      ],
+      "output_count": 32768,
+      "comparison_passed": true,
+      "max_abs_error": 1.4901161193847656e-08
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T06:08:31.019483+00:00",
+  "uncertain_request": false
+}

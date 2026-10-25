@@ -1,64 +1,60 @@
 # Architecture and supported scope
 
 The pipeline is `trusted JSON + meta.json -> Emmy typed graph -> validated kernel
-contract -> our PTX emitter -> stdout`. Emmy is used for deserialization and typed
-IR objects. No Emmy renderer, nvcc, ptxas or other lowering backend is invoked.
+contract -> our PTX emitter -> stdout`. Emmy supplies deserialization and typed
+objects only. No Emmy renderer, nvcc or other lowering backend is invoked.
 
-The loader accepts exactly one KernelOp plus InputOp and ConstantOp leaves. Graph
-activation inputs must match InputOp outputs; kernel inputs include both activation
-and constant buffers. It checks the matching metadata entry/node, f32 types,
-positive static rank-1/rank-2 shapes, rank-0 output buffers, buffer roles and
-launch dimensions. Scalar IR outputs still use a one-element pointer ABI.
-`args` must have the same names in exactly the same order as `arg_order`.
-By-value scalars, intermediate buffers and in-place outputs are rejected.
+## Loader and ABI
 
-Constant buffers use the same pointer ABI and Load path as other inputs. Their
-metadata must supply numeric `data` with the declared length and no `seed`.
-Values are never embedded in PTX. Both broadcast scalar buffers and indexed
-multi-element buffers are tested. ConstantOp source/context loading is not part
-of this compiler: metadata must already describe the bound buffer contents.
+The loader accepts one KernelOp plus InputOp/ConstantOp leaves. It matches graph
+inputs/outputs, validates f32 positive static rank-1/rank-2 shapes and rank-0
+outputs, and preserves both tensor dimensions and total element counts. A scalar
+IR result `[]` maps to metadata buffer `[1]`, passed through a `.u64` pointer.
 
-The emitter accepts one ordinary one-dimensional Tile with a positive static
-extent, f32 Load, Assign(add/multiply/relu), and one non-atomic, unswizzled Write per
-output. It validates operator identity, arity and SSA names before emission.
-Grouped memory operations of width 1, 2 or 4 become scalar loads/stores, preserving
-consecutive value semantics without vector alignment assumptions.
+`args` must agree exactly with `arg_order`, dimensions, dtype and input/output
+roles. Runtime constants use pointers; metadata values never enter generated PTX.
+By-value scalars, intermediate graphs and in-place outputs are rejected. Launch
+geometry is one-dimensional; explicit cooperative schedules require complete
+matching blocks. Dynamic shared-memory bytes and output-zeroing names are
+validated by the loader, then checked against the chosen backend's contract.
 
-Index trees support the tile axis, nonnegative integer literals, addition and
-multiplication by a constant. Affine bounds prove indices fit within 31 bits and
-accesses fit declared buffers. Writes must cover each output once with contiguous
-per-thread cells, ruling out races and silent partial output in this slice.
-Pointwise scalar cells handle odd sizes and block tails; grouped partial cells requiring
-per-element predicates are unsupported and rejected. Two-dimensional pointwise buffers, other
-types, nonlinear pointwise indices and rasterized scheduling remain unsupported.
-Rank-0 results and cooperative nodes are accepted only by the reduction path
-described below.
+## Backend selection
 
-Each thread computes `blockIdx.x * blockDim.x + threadIdx.x`; the Tile extent
-guard protects excess threads. Metadata must launch enough threads. The same path
-handles all four public pointwise cases and independently varied shapes/names.
-Virtual registers are allocated by type. Address offsets use `mul.wide.u32`
-before 64-bit pointer addition. Numeric choices are documented in NUMERICS.md.
-The output remains PTX 8.0, sm_89, with 64-bit addressing.
+Dispatch depends on IR node structure, never filenames or problem identifiers.
 
-Emission finishes in memory before stdout is written, so validation errors cannot
-leave partial PTX. Official deserialization uses Python expression evaluation;
-only trusted official or self-generated IR is supported, not hostile uploads.
+- `ptx.py`: the original scalar/grouped pointwise path, with affine bounds and
+  exact contiguous output coverage. Its four GPU-tested PTX artifacts are unchanged.
+- `reduction.py`: validated sum/mean/per-row topology, neutral tail lanes, full
+  warp shuffle and unique shared-tree writers. See REDUCTIONS.md.
+- `structured.py`: common scalar arithmetic, bounded row-major indices, Tile and
+  raster decoding, nested loops, state lifetimes and output-coverage proofs.
+- `cooperative.py`: validated multi-state per-row reductions and a second output
+  pass, reusing structured scalar operations.
+- `matmul.py`: shared allocation, async-copy groups, alignment/domain reasoning,
+  uniform synchronization and zero-initialized atomic output accumulation.
 
-A separate structural validator recognizes the single-CTA sum topology used by
-r01–r04: a strided load/accumulate loop, full-warp shuffle, shared partial store,
-block synchronization, shared halving tree and scalar final write. It derives
-length, thread count, bindings and ABI order from IR. It rejects every unsupported
-node/field before emitting the corresponding schedule. Complete power-of-two
-blocks of 32–1024 threads use neutral idle lanes and unconditional barriers.
-Rank-2 row sums assign one CTA per row and use row-major addresses; mean loads
-its divisor from a separate runtime buffer and emits `div.rn.f32` after reduction.
-Only lane zero writes each shared tree slot. Static shared storage is declared
-in PTX; metadata dynamic shared memory remains zero. See REDUCTIONS.md.
+External dynamic shared declarations appear at module scope, while registers and
+static shared buffers remain inside the entry. This distinction was confirmed by
+a real assembler failure and corrected m01 retry, retained with the result record.
+PTX is version 8.0, target sm_89, with 64-bit global addresses and 32-bit shared
+addresses. Explicit arithmetic rounding avoids unintended multiply/add fusion.
 
-Validation levels remain distinct: 108 local tests (including a limited CPU PTX
-model and mocked transport tests), and NVIDIA assembly/GPU output comparison for
-all four public pointwise cases. GPU receipts cover their supplied finite arrays;
-shape variants and exceptional values have local checks only. CPU-model agreement
-cannot establish additional NVIDIA hardware behavior. See STATUS.md and
-RUNNER_RESULTS.md for evidence.
+## Validation boundaries
+
+The supported schedules use f32, positive static dimensions, bounded integer
+indices and known scalar operators. Other dtypes, dynamic dimensions, unknown
+nodes/operators and unproven address or synchronization contracts fail clearly.
+Grouped pointwise partial cells, swizzled shared layouts, arbitrary async races,
+partial cooperative warps and general multi-kernel graphs remain unsupported.
+The ordinary structured output proof has explicit finite-domain resource limits.
+See ADVANCED_IR.md for exact limits and NUMERICS.md for floating-point choices.
+
+Emission completes in memory before stdout is written, so rejected IR cannot
+leave partial PTX. Official deserialization uses expression evaluation; only
+trusted official or self-generated IR is supported, not hostile uploads.
+
+169 deterministic local tests and four limited PTX CPU models check values,
+addresses, state lifetimes, synchronization and invalid inputs. Separate official
+receipts establish assembly/execution/expected-array comparison for all 15 public
+fixtures. That hardware evidence does not cover every shape, special value,
+interleaving, hidden test or performance scenario.

@@ -1,20 +1,16 @@
 # Emmy Compiler
 
-An independent, local Python compiler for the RiftStack Emmy Hackathon 2026.
-It reads Emmy Kernel IR with `emmy-ml==0.3.11` and emits PTX using our own lowering.
-The current slice handles one-dimensional, statically sized f32 addition,
-multiplication and ReLU, with runtime constant buffers. All four official
-pointwise cases (`p00` through `p03`) compile locally. A validated single-block
-f32 sum path also compiles `r01`–`r04`: scalar sum, mean with a runtime
-divisor, and row sum with rank-2 inputs.
+An independent Python compiler for the RiftStack Emmy Hackathon 2026. It reads
+Emmy Kernel IR with `emmy-ml==0.3.11` and emits PTX through our own lowering.
+No Emmy renderer, nvcc or other compiler generates the PTX.
 
-**Status: all four public pointwise cases passed official PTX assembly, GPU
-execution and expected-array comparison; 108 local tests pass. r01–r04 have
-local PTX generation and cooperative CPU-model checks only.**
-The GPU runs cover the supplied finite inputs. Exceptional-input behavior and
-hidden variants are not validated; the CPU model remains a test helper.
-This is an initial working slice, not a completed competition MVP. See
-[build status](docs/STATUS.md) and [architecture and supported scope](docs/ARCHITECTURE.md).
+**All 15 public problems passed official PTX assembly, RTX 5090 execution and
+expected-array comparison. The final local suite has 169 passing tests.**
+This includes all eight basic problems. Public-fixture success does not establish
+hidden-test coverage, universal f32 behavior or competitive performance.
+
+See [build status](docs/STATUS.md), [actual GPU results](docs/RUNNER_RESULTS.md),
+[architecture](docs/ARCHITECTURE.md) and [submission readiness](docs/SUBMISSION_READINESS.md).
 
 ## Setup
 
@@ -57,47 +53,60 @@ The root entry point follows the official contract:
 ```sh
 source .venv312/bin/activate
 python compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > /tmp/emmy-p00.ptx
-python compile.py .reference/problems/p01_vector_add/k_add_pointwise.ir.json > /tmp/emmy-p01.ptx
-python compile.py .reference/problems/p02_scale_shift/k_add_pointwise.ir.json > /tmp/emmy-p02.ptx
-python compile.py .reference/problems/p03_relu_mul/k_mul_pointwise.ir.json > /tmp/emmy-p03.ptx
+python compile.py .reference/problems/r04_row_sum/k_sum_1_reduce.ir.json > /tmp/emmy-r04.ptx
+python compile.py .reference/problems/f02_row_softmax/k_softmax_05263d.ir.json > /tmp/emmy-f02.ptx
+python compile.py .reference/problems/m01_matmul_512/k_matmul_2967be.ir.json > /tmp/emmy-m01.ptx
 ```
 
-Keep each IR next to its official `meta.json`. Kernel entry names come from the
-IR; pointer parameter order comes from the matching metadata row. Its `args`
-descriptors must agree with `arg_order`, buffer types/shapes and input/output roles.
-Constants remain pointer arguments whose values are supplied by the runtime. Successful
-stdout is ASCII PTX only. Unsupported operations and invalid input produce a
-nonzero exit with a diagnostic on stderr and no partial PTX.
+Keep each IR next to its official `meta.json`. Entry names come from IR; pointer
+argument order and launch contracts come from the matching metadata row. Runtime
+constants stay in pointer buffers. Successful stdout is ASCII PTX only. Invalid
+or unsupported contracts produce a nonzero exit, a stderr diagnostic and no
+partial PTX. Only trusted official or self-generated IR is supported: Emmy's
+required deserializer uses Python expression evaluation internally. This is not
+an untrusted JSON upload service or a security sandbox.
 
-Only compile trusted official or self-generated IR: Emmy's required deserializer
-uses Python expression evaluation internally. This program is not an untrusted
-JSON upload service or a security sandbox.
+## Coverage
+
+| Category | Public cases | Official GPU result |
+| --- | --- | --- |
+| Pointwise | p00–p03 | 4/4 PASS |
+| Reduction | r01–r04 | 4/4 PASS |
+| Fused normalization / softmax | f01–f03 | 3/3 PASS |
+| Attention | a01–a02 | 2/2 PASS |
+| Matrix multiplication | m01–m02 | 2/2 PASS |
+
+Backends are selected from IR structure, with sizes, bindings, loops and parameter
+order derived from the actual graph. Tests change shapes, names, ABI order,
+runtime values and schedules. Unsupported types, dynamic shapes and unproven
+index/synchronization contracts fail explicitly; this is not all possible Emmy IR.
 
 ## Project map
 
-- `compile.py`: command-line entry point.
-- `emmy_ptx/loader.py`: official IR deserialization and launch/ABI validation.
-- `emmy_ptx/ptx.py`: typed statement walk, virtual registers and direct PTX emission.
-- `emmy_ptx/reduction.py`: validated cooperative sum plan and direct PTX emission.
-- `tests/`: parser/ABI/CLI regressions, numeric/address-flow models, shuffle/barrier
-  checks and mocked transport tests; no GPU or runner calls.
-- `docs/REDUCTIONS.md`: reduction topology, synchronization and local evidence.
-- `docs/NUMERICS.md`: rounding, ReLU exceptional values and the reference discrepancy.
-- `tools/fetch_reference.py`: immutable public reference downloads.
-- `tools/run_official.py`: bounded wrapper around the reviewed official runner client;
-  requires separate authorization before uploading PTX or running GPU tests.
-- `requirements-runner.lock`: optional isolated runner-client environment.
-- `docs/CHALLENGE.md`: official boundaries and later submission prerequisites.
-- `THIRD_PARTY_NOTICES.md`: source provenance and unresolved licensing questions.
+- `compile.py`: required CLI.
+- `emmy_ptx/loader.py`: official deserialization, buffer shapes and launch ABI.
+- `emmy_ptx/ptx.py`: pointwise lowering and structural backend dispatch.
+- `emmy_ptx/structured.py`: bounded indices, structured loops, scalar operations
+  and ordinary output-coverage proofs.
+- `emmy_ptx/reduction.py`, `cooperative.py`, `matmul.py`: sum/mean/row reduction,
+  multi-state fused reductions, and shared-memory/async-copy contractions.
+- `tests/`: deterministic parser, ABI, CLI, numeric-model and transport regressions.
+- `tools/fetch_reference.py`: hash-pinned public data downloader.
+- `tools/run_official.py`: bounded wrapper around the unchanged reviewed official
+  client. It uploads PTX and public descriptors over HTTP and needs authorization.
+- `docs/NUMERICS.md`: rounding, approximate exp, atomic subnormals and unresolved
+  exceptional-input semantics.
+- `THIRD_PARTY_NOTICES.md`: provenance and unresolved publication/licensing terms.
 
-All four authorized public pointwise cases passed on an RTX 5090 with zero
-maximum absolute error. See [runner results](docs/RUNNER_RESULTS.md) for exact
-commands, stdout, receipts and limits. Each case ran once; the timings are not
-performance benchmarks. The [private source repository](https://github.com/Xuefeng-Zhu/emmy-compiler)
-was updated through commit `519fc60`. The subsequent p02/p03 runner results and
-wrapper adaptation remain local and unpushed.
+The Mac has no NVIDIA GPU or local ptxas. Local CPU instruction models do not
+replace hardware evidence; the separate runner receipts document actual GPU
+execution. Each public case has one successful GPU launch with no warmup and one
+iteration, so recorded timings are indicative, not benchmarks. m01 first failed
+assembly; its corrected module-scope shared declaration then passed. Both receipts
+are retained.
 
-All eight basic public cases compile and pass their local numeric models. Local
-implementation is continuing through fused operations and the remaining public
-categories. New GPU validation, hidden-set validation and competition
-submission remain pending. Local continuation does not authorize new uploads.
+The existing [private repository](https://github.com/Xuefeng-Zhu/emmy-compiler) was
+last pushed through `519fc60`. Subsequent results and implementation commits
+remain local. No public publication, registration or competition submission has
+been performed. The participant still needs to decide licensing/publication and
+record the required 3–5 minute explanation in their own voice.
