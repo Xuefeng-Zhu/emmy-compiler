@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 
 from emmy.compiler.graph import Graph
+from emmy.compiler.ir.base import ConstantOp, InputOp
 from emmy.compiler.ir.kernel.ir import KernelOp
 
 from .errors import CompileError
@@ -51,8 +52,14 @@ def load_kernel(path: Path) -> Kernel:
     op = node.op
     require(isinstance(op.name, str) and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', op.name), 'entry must be an ASCII identifier')
     require(not op.serial and not op.zero_delegated, 'serial axes and delegated zeroing are unsupported')
+    graph_inputs, constants = set(), set()
     for n in graph.nodes.values():
-        require(n is node or type(n.op).__name__ == 'InputOp', f'unsupported graph operation: {type(n.op).__name__}')
+        if n is node:
+            continue
+        require(isinstance(n.op, (InputOp, ConstantOp)), f'unsupported graph operation: {type(n.op).__name__}')
+        require(not n.inputs, 'input and constant nodes must be leaves')
+        buffers = {t.name for t in n.outputs}
+        (constants if isinstance(n.op, ConstantOp) else graph_inputs).update(buffers)
     rows = meta.get('kernels')
     require(isinstance(rows, list) and all(isinstance(r, dict) for r in rows), 'meta.json: kernels must be a list of objects')
     rows = [r for r in rows if r.get('entry') == op.name and r.get('node') == node.id]
@@ -61,7 +68,7 @@ def load_kernel(path: Path) -> Kernel:
     inputs = frozenset(node.inputs)
     outputs = frozenset(t.name for t in node.outputs)
     require(not inputs & outputs, 'in-place output buffers are unsupported')
-    require(set(graph.inputs) == inputs and set(graph.outputs) == outputs, 'graph input/output contract does not match kernel')
+    require(set(graph.inputs) == graph_inputs and inputs == graph_inputs | constants and set(graph.outputs) == outputs, 'graph input/output/constant contract does not match kernel')
     order = launch.get('arg_order')
     require(isinstance(order, list) and all(isinstance(x, str) for x in order), 'meta.json: invalid arg_order')
     require(len(set(order)) == len(order) and set(order) == inputs | outputs, 'meta.json: arg_order must contain each kernel buffer exactly once')
@@ -90,6 +97,11 @@ def load_kernel(path: Path) -> Kernel:
         require(a.get('intermediate', False) is False, 'meta.json: intermediate arguments are unsupported')
         require(isinstance(a.get('shape'), list) and all(type(d) is int for d in a['shape']), 'meta.json: argument shape must contain integers')
         require(a.get('dtype') == 'f32' and a.get('shape') == [shapes[a['name']]], f'meta.json: buffer descriptor mismatch for {a["name"]}')
+        if a['name'] in constants:
+            # Constants are runtime buffers. Values never enter generated PTX.
+            data = a.get('data')
+            require(isinstance(data, list) and len(data) == shapes[a['name']] and all(type(v) in (int, float) for v in data), f'meta.json: constant buffer {a["name"]} requires numeric data matching its shape')
+            require('seed' not in a, 'meta.json: constant data and seed cannot both be supplied')
     geometry = []
     for key in ('grid', 'block'):
         dims = launch.get(key)

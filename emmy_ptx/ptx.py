@@ -90,11 +90,18 @@ class Emitter:
             require(getattr(stmt.dtype, 'name', None) == 'f32', 'Assign: only f32 supported')
             require(isinstance(stmt.op, ElementwiseImpl), 'Assign: operator must be an ElementwiseImpl')
             require(isinstance(stmt.args, (tuple, list)) and all(isinstance(arg, str) and arg for arg in stmt.args), 'Assign: args must be a sequence of nonempty SSA names')
-            require(stmt.op.name == 'add' and len(stmt.args) == 2, f'unsupported elementwise operation: {stmt.op.name}')
-            a, b = (self.value(arg) for arg in stmt.args)
+            arities = {'add': 2, 'multiply': 2, 'relu': 1}
+            require(stmt.op.name in arities, f'unsupported elementwise operation: {stmt.op.name}')
+            require(len(stmt.args) == arities[stmt.op.name], f'Assign {stmt.op.name}: wrong operand count')
+            operands = [self.value(arg) for arg in stmt.args]
             dst = self.reg('f')
             self.bind(stmt.name, dst)
-            self.put(f'add.rn.f32 {dst}, {a}, {b};')
+            if stmt.op.name == 'relu':
+                # Propagate NaN; max(+0, -0) is +0; no flush-to-zero modifier.
+                self.put(f'max.NaN.f32 {dst}, {operands[0]}, 0f00000000;')
+            else:
+                instr = {'add': 'add.rn.f32', 'multiply': 'mul.rn.f32'}[stmt.op.name]
+                self.put(f'{instr} {dst}, {operands[0]}, {operands[1]};')
         elif isinstance(stmt, Write):
             require(getattr(stmt.value_dtype, 'name', None) == 'f32', 'Write: only f32 supported')
             require(not stmt.atomic and stmt.swizzle == 'NONE', 'atomic or swizzled Write unsupported')

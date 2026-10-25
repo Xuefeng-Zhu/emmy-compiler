@@ -1,42 +1,49 @@
-# Architecture and initial scope
+# Architecture and supported scope
 
 The pipeline is `trusted JSON + meta.json -> Emmy typed graph -> validated kernel
-contract -> our PTX emitter -> stdout`. Emmy is used only for deserialization and
-typed IR objects. We do not invoke its renderer, command-line compiler, nvcc,
-ptxas, or another lowering backend.
+contract -> our PTX emitter -> stdout`. Emmy is used for deserialization and typed
+IR objects. No Emmy renderer, nvcc, ptxas or other lowering backend is invoked.
 
-The loader locates exactly one KernelOp, matches both its entry and node in
-metadata, and validates buffer identities, f32 types, static one-dimensional
-shapes and launch dimensions. Parameter order is taken directly from `arg_order`.
-It never guesses the ABI from graph insertion order.
+The loader accepts exactly one KernelOp plus InputOp and ConstantOp leaves. Graph
+activation inputs must match InputOp outputs; kernel inputs include both activation
+and constant buffers. It checks the matching metadata entry/node, f32 types,
+positive static one-dimensional shapes, buffer roles and launch dimensions.
+`args` must have the same names in exactly the same order as `arg_order`.
+By-value scalars, intermediate buffers and in-place outputs are rejected.
 
-The emitter supports one ordinary one-dimensional Tile with a positive static
-extent; InputOp buffers; f32 Load; Assign(add) with two SSA values; and one
-non-atomic, unswizzled Write per output. Grouped memory operations of width 1, 2
-or 4 become individual scalar loads/stores. This preserves the consecutive value
-semantics without requiring vector alignment assumptions. It is not vector PTX
-optimization.
+Constant buffers use the same pointer ABI and Load path as other inputs. Their
+metadata must supply numeric `data` with the declared length and no `seed`.
+Values are never embedded in PTX. Both broadcast scalar buffers and indexed
+multi-element buffers are tested. ConstantOp source/context loading is not part
+of this compiler: metadata must already describe the bound buffer contents.
 
-Integer index trees support the tile axis, nonnegative integer literals, addition
-and multiplication by a constant. Affine coefficients prove indices fit within
-31 bits and accesses fit the declared buffers. Writes must cover the full output
-once, with consecutive per-thread cells. This restriction rules out write races
-and silent partial results in the supported slice. Non-affine expressions,
-other arithmetic, reductions, constants as graph nodes, shared memory, extra
-scheduling features and all other statements fail explicitly.
+The emitter accepts one ordinary one-dimensional Tile with a positive static
+extent, f32 Load, Assign(add/multiply/relu), and one non-atomic, unswizzled Write per
+output. It validates operator identity, arity and SSA names before emission.
+Grouped memory operations of width 1, 2 or 4 become scalar loads/stores, preserving
+consecutive value semantics without vector alignment assumptions.
 
-Each thread computes `blockIdx.x * blockDim.x + threadIdx.x`. A guard derived
-from the Tile extent prevents excess threads from accessing memory. The prescribed
-launch must cover all logical cells. p00 has 64 cells and 256 launched threads;
-p01 has 512 cells and two blocks of 256. Both use the identical lowering path.
+Index trees support the tile axis, nonnegative integer literals, addition and
+multiplication by a constant. Affine bounds prove indices fit within 31 bits and
+accesses fit declared buffers. Writes must cover each output once with contiguous
+per-thread cells, ruling out races and silent partial output in this slice.
+Scalar cells handle odd sizes and block tails; grouped partial cells requiring
+per-element predicates are unsupported and rejected. Rank-0/2-D buffers, other
+types, nonlinear indices, reductions, control flow, shared memory and cooperative
+or rasterized scheduling remain unsupported.
 
-Virtual registers are allocated by type and declared after the body has been
-built. Address offsets use `mul.wide.u32` before 64-bit pointer addition. Floating
-addition uses explicit `add.rn.f32`. Output targets PTX 8.0, sm_89, 64-bit addressing.
-Emission completes in memory before stdout is written, so rejected input cannot
-leave a plausible partial kernel.
+Each thread computes `blockIdx.x * blockDim.x + threadIdx.x`; the Tile extent
+guard protects excess threads. Metadata must launch enough threads. The same path
+handles all four public pointwise cases and independently varied shapes/names.
+Virtual registers are allocated by type. Address offsets use `mul.wide.u32`
+before 64-bit pointer addition. Numeric choices are documented in NUMERICS.md.
+The output remains PTX 8.0, sm_89, with 64-bit addressing.
 
-Validation has three distinct levels: local typed-input/structure tests (39 passing),
-NVIDIA PTX assembly (p00/p01 passed), and execution with official tolerances and launch
-metadata (p00/p01 passed on the official RTX 5090). Other cases remain unvalidated.
-Text tests alone cannot establish GPU correctness; see RUNNER_RESULTS.md for receipts.
+Emission finishes in memory before stdout is written, so validation errors cannot
+leave partial PTX. Official deserialization uses Python expression evaluation;
+only trusted official or self-generated IR is supported, not hostile uploads.
+
+Validation levels remain distinct: 62 local tests (including a limited CPU PTX
+model), prior NVIDIA assembly and GPU output comparison for p00/p01, and pending
+assembly/GPU checks for p02/p03. CPU-model agreement cannot establish PTX legality
+or NVIDIA hardware behavior. See STATUS.md and RUNNER_RESULTS.md for evidence.

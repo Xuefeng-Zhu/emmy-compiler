@@ -1,0 +1,52 @@
+{
+  "date_utc": "2026-10-25",
+  "test_command": ".venv312/bin/python -B -m unittest discover -s tests -v > build/local-pointwise-tests.txt 2>&1",
+  "tests": 62,
+  "elapsed_seconds": 4.463,
+  "exit_code": 0,
+  "kind": "local CPU tests and limited PTX model, not assembly or GPU execution",
+  "reference_commit": "ec8cde1943f88efea3827a95bda6085553d2d407",
+  "reference_files_verified": 26,
+  "cases": [
+    {
+      "problem": "p00_scalar_add",
+      "command": ".venv312/bin/python -B compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > build/p00.ptx",
+      "exit_code": 0,
+      "stderr": "",
+      "ptx_bytes": 1487,
+      "ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+      "cpu_model_matches_official_expected": true,
+      "new_gpu_execution": false
+    },
+    {
+      "problem": "p01_vector_add",
+      "command": ".venv312/bin/python -B compile.py .reference/problems/p01_vector_add/k_add_pointwise.ir.json > build/p01.ptx",
+      "exit_code": 0,
+      "stderr": "",
+      "ptx_bytes": 1488,
+      "ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+      "cpu_model_matches_official_expected": true,
+      "new_gpu_execution": false
+    },
+    {
+      "problem": "p02_scale_shift",
+      "command": ".venv312/bin/python -B compile.py .reference/problems/p02_scale_shift/k_add_pointwise.ir.json > build/p02.ptx",
+      "exit_code": 0,
+      "stderr": "",
+      "ptx_bytes": 2641,
+      "ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+      "cpu_model_matches_official_expected": true,
+      "new_gpu_execution": false
+    },
+    {
+      "problem": "p03_relu_mul",
+      "command": ".venv312/bin/python -B compile.py .reference/problems/p03_relu_mul/k_mul_pointwise.ir.json > build/p03.ptx",
+      "exit_code": 0,
+      "stderr": "",
+      "ptx_bytes": 2398,
+      "ptx_sha256": "967720bf8d816d245c886333b8be6e0f2bbc47e7719896d70612710e03ef18dc",
+      "cpu_model_matches_official_expected": true,
+      "new_gpu_execution": false
+    }
+  ]
+}

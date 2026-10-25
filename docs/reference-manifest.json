@@ -65,6 +65,46 @@
     {
       "path": "problems/p01_vector_add/expected.npz",
       "sha256": "1a72f87aa3afd4e84746d2c0bfcfde9d024f573ce863322f72d2c6b3bb133086"
+    },
+    {
+      "path": "problems/p02_scale_shift/k_add_pointwise.ir.json",
+      "sha256": "2bae0a54cbcd037d6c13e70b5c4f5728f2f94af163a53ebe35b88ab8f68ec021"
+    },
+    {
+      "path": "problems/p02_scale_shift/k_add_pointwise.ir.txt",
+      "sha256": "dc59c03925d326ddcb97f57efd010183163e5df6ba776b35d738532292d14e45"
+    },
+    {
+      "path": "problems/p02_scale_shift/k_add_pointwise.ref.cu",
+      "sha256": "963351ecee30e24d694f7673cf5c6e4867ce59db2a1e371496c8778e2e14215f"
+    },
+    {
+      "path": "problems/p02_scale_shift/meta.json",
+      "sha256": "7c1c3ea69e4d61128d72fbaf3a82a76125a5273c3ced6197ac2f150d03d121e1"
+    },
+    {
+      "path": "problems/p02_scale_shift/expected.npz",
+      "sha256": "515539ace84b0cb38ab3e5e6ed20894b774ab428a86be180529d54fd8ad63dd6"
+    },
+    {
+      "path": "problems/p03_relu_mul/k_mul_pointwise.ir.json",
+      "sha256": "b2429e790dac9fd0db9fafadaa3624cafaeff85c834851a9034a730a1620a892"
+    },
+    {
+      "path": "problems/p03_relu_mul/k_mul_pointwise.ir.txt",
+      "sha256": "b575613079f253127d1b4189afad6a67a9af3ca5bf47606dc9e3fdc824850e55"
+    },
+    {
+      "path": "problems/p03_relu_mul/k_mul_pointwise.ref.cu",
+      "sha256": "65f09af86219460f1aac0c9ff4ecd323a5b301240e63c4aaa3130b449e074663"
+    },
+    {
+      "path": "problems/p03_relu_mul/meta.json",
+      "sha256": "a2dbbe3a3cec7c45fcdde2c08f0d3276647c2a4b56ede3345be16404d1ded8c9"
+    },
+    {
+      "path": "problems/p03_relu_mul/expected.npz",
+      "sha256": "a0fc97901b28331b29bb5f01cf104944c3376c633dd4cce65d551ad61035e52f"
     }
   ]
 }

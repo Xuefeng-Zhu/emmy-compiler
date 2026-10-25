@@ -1,71 +1,101 @@
 # Build status
 
-Latest: **p00 and p01 passed official PTX assembly, RTX 5090 execution and exact
-output comparison** on October 24, 2026 (America/Los_Angeles). See
-[runner results](RUNNER_RESULTS.md). Both cases required one attempt; no compiler
-fixes were needed. The 39 local tests passed again in 0.611 seconds.
-
-The initial local-only checkpoint below is retained as historical context.
-
-Checkpoint: October 24, 2026 (America/Los_Angeles).
+Checkpoint: October 25, 2026 (UTC).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
-## Delivered
+**62 local tests pass. All four public pointwise cases compile and match official
+expected arrays in our CPU model. GPU PASS evidence remains limited to p00/p01.**
 
-- Independent root CLI, typed official IR loading and metadata ABI validation.
-- Our direct PTX 8.0/sm_89 lowering for the bounded 1-D f32 add slice.
-- Official p00 and p01 compile locally; entry and shapes are read from input.
-- Explicit rejection of unsupported features, invalid accesses and incomplete writes.
-- English setup, architecture, challenge boundaries and third-party notices.
-- Isolated working CPython 3.12.12 environment (`.python/` + `.venv312/`).
-- All 37 dependencies pinned in requirements.lock; no global installation changes.
+## Delivered in this local extension
 
-## Executed validation
+- Strict agreement between `args`, `arg_order`, pointer signatures and output roles.
+- Clear CompileError diagnostics for malformed Assign operators/operands, including
+  `op=None` and `args=None`, with empty CLI stdout and no traceback.
+- ConstantOp buffers supplied through runtime pointers, including indexed arrays;
+  values, buffer names and dimensions are not hardcoded from public cases.
+- General f32 multiply and unary ReLU, with explicit rounding and NaN/zero choices.
+- Tests for changed lengths/constants, multiple-element constants, parameter
+  reordering, unsupported types/operations, exceptional values and accidental FMA.
+- English architecture/numerics notes and a hash-pinned manifest of 26 upstream
+  files. Reference files, virtual environments and build output remain ignored.
 
-From the project directory:
+## Evidence and limits
 
-| Command | Observed result |
-| --- | --- |
-| `.venv312/bin/python tools/fetch_reference.py` | Verified 13 SHA-256-pinned official files at commit ec8cde1943f88efea3827a95bda6085553d2d407 |
-| `.venv312/bin/python -B -m unittest discover -s tests -v` | 39 tests passed; final run 0.595 seconds |
-| `.venv312/bin/python compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > build/p00.ptx` | Exit 0; ASCII PTX emitted with 64-cell guard |
-| `.venv312/bin/python compile.py .reference/problems/p01_vector_add/k_add_pointwise.ir.json > build/p01.ptx` | Exit 0; ASCII PTX emitted with 512-cell guard |
-| `UV_CACHE_DIR=/tmp/emmy-uv-cache uv pip check --python .venv312/bin/python` | All 37 installed packages compatible |
+| Official case | CLI generation | CPU model vs official expected.npz | PTX assembly / GPU comparison |
+| --- | --- | --- | --- |
+| p00_scalar_add | Exit 0 | Passed | Prior PASS, RTX 5090 |
+| p01_vector_add | Exit 0 | Passed | Prior PASS, RTX 5090 |
+| p02_scale_shift | Exit 0 | Passed, rtol/atol 1e-6 | Not run |
+| p03_relu_mul | Exit 0 | Passed, rtol/atol 0 | Not run |
+| r01–r04 reductions | Unsupported | Not run | Not run |
 
-Local test output is saved in `build/tests.txt`; generated PTX is in `build/`.
-These artifacts are ignored by Git and reproducible using the commands above.
-Tests cover actual official deserialization, repeated deterministic compilation,
-entry renaming, changed small shapes, metadata argument reordering, global thread
-index and bounds guard, loads/adds/stores, CLI arity, missing/malformed files,
-unsupported operations/types, invalid SSA, address range, zero extent, overflowing
-index arithmetic, overlapping/incomplete writes and clean failure output.
+The official basic scope is eight problems: four pointwise plus four reductions.
+This is not yet the competition MVP. There are 15 public problems overall.
 
-The tests above describe the initial local CPU/parser/text checks. Subsequent
-explicitly authorized runner validation passed p00/p01, as recorded separately.
-The Mac still has no ptxas or NVIDIA GPU; assembly and execution ran on the official
-service through its reviewed client in an isolated `.venv-runner` environment.
+Executed from the project directory:
 
-## Environment issue resolved locally
+```sh
+.venv312/bin/python -B -m unittest discover -s tests -v > build/local-pointwise-tests.txt 2>&1
+.venv312/bin/python -B compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > build/p00.ptx
+.venv312/bin/python -B compile.py .reference/problems/p01_vector_add/k_add_pointwise.ir.json > build/p01.ptx
+.venv312/bin/python -B compile.py .reference/problems/p02_scale_shift/k_add_pointwise.ir.json > build/p02.ptx
+.venv312/bin/python -B compile.py .reference/problems/p03_relu_mul/k_mul_pointwise.ir.json > build/p03.ptx
+```
 
-The existing Homebrew Python 3.13 and 3.14 installations fail to import sqlite3
-because `/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib` is missing. Emmy imports
-sqlite3 while loading its compiler package. A project-contained CPython 3.12.12
-runtime solved this prerequisite without changing Homebrew or system libraries.
-The failed temporary Python 3.13 venv created for this task was removed; the
-working `.venv312` remains.
+The test command exited 0: **62 tests in 4.463 seconds, OK**. Each compiler command
+exited 0 with ASCII PTX and empty stderr. An offline SHA-256 check verified all 26
+cached files against reference-manifest.json, pinned to upstream commit
+`ec8cde1943f88efea3827a95bda6085553d2d407`. The saved
+[test output](validation/2026-10-25/local-tests.txt) and
+[local result record](validation/2026-10-25/local-results.json) contain details.
+No new dependencies, runner requests, GPU jobs or repository pushes were made.
 
-## Remaining work
+Nine CPU-model test methods check output values and that every output element is
+written exactly once. They cover scalar lengths 1, 3, 255, 256, 257, 1023 and 1025;
+width-four shapes 4, 12 and 1028; runtime constants; a nine-element constant array;
+parameter reordering; special float values; and separate multiply/add rounding.
+This model is deliberately limited and is not a PTX assembler or GPU emulator.
 
-1. Completed: reviewed official client and verified p00/p01 through assembly,
-   hardware execution and expected-output comparison. No failures or retries.
-2. Add constants as buffer arguments and further pointwise arithmetic for p02/p03.
-3. Add reduction statements, shuffle/shared-memory synchronization and coverage
-   of all four reduction tasks. The official MVP totals eight tasks.
-4. Validate shape/operation variations; benchmark only after correctness.
-5. Before any public entry, confirm licensing/IP terms, select an original-code
-   license, publish only authorized material and prepare the participant's own
-   3–5 minute voice explanation.
+Generated p00/p01 PTX hashes are byte-identical to the artifacts used for the
+previous authorized GPU tests. Those tests each passed once on an RTX 5090 with
+zero maximum absolute error. Their 23.584/20.352 microsecond measurements used
+zero warmups and one iteration; they are not a stable performance benchmark.
+Original commands and receipts remain unchanged in [RUNNER_RESULTS.md](RUNNER_RESULTS.md).
 
-The bounded setup and two authorized runner tests are complete. This does not
-authorize further GPU jobs, a full-competition build, publication or submission.
-The runner results and helper are committed locally only; no new push was made.
+## Environment and remaining scope
+
+The Mac has no NVIDIA GPU or ptxas. CPython 3.12.12 and the 37 pinned dependencies
+remain isolated in `.python/` and `.venv312/`; the optional runner environment is
+separate. The project-local runtime avoids the existing Homebrew SQLite issue.
+
+Only static one-dimensional f32 buffers and one ordinary Tile are supported.
+Rank-0 buffers, other types, partial grouped tails, control flow, reductions,
+shared-memory synchronization and cooperative scheduling remain explicit errors.
+The ReLU NaN discrepancy between Emmy's host operation and the CUDA reference is
+recorded in [NUMERICS.md](NUMERICS.md); hidden exceptional-input requirements remain
+unresolved. Deserialization accepts trusted IR only.
+
+Next implementation after pointwise GPU validation: a general first reduction,
+including scalar result buffers, reduction loops/accumulators and the required
+shuffle/shared-memory synchronization. No reduction work was started here.
+
+## Minimal next GPU validation payload (not sent)
+
+A separate authorization would cover exactly these generated PTX strings and
+public launch/input descriptions, one execution each (`warmup=0`, `iters=1`):
+
+| Case | Entry | Grid / block | Ordered f32 arguments |
+| --- | --- | --- | --- |
+| p02 | k_add_pointwise | (4,1,1) / (256,1,1) | mul_c1[1] data=[2.0], add_c1[1] data=[1.0], x[4096] seed=0, add[4096] output |
+| p03 | k_mul_pointwise | (2,1,1) / (256,1,1) | x[2048] seed=0, y[2048] seed=1, mul[2048] output |
+
+Both require zero shared memory and no output zeroing. PTX hashes are recorded in
+local-results.json. The official HTTP runner would assemble and execute PTX;
+expected.npz comparison stays local. No Python source, repository content,
+credentials or private input data are needed. The existing runner wrapper still
+allows only p00/p01; it has not been expanded or invoked by this change.
+
+All new commits remain local. No publication, competition registration, paid
+resources, other project's GPU quota or submission actions occurred. Before a
+public entry, original-code licensing and competition IP terms need review; the
+participant must supply the required 3–5 minute explanation in their own voice.

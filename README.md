@@ -2,11 +2,13 @@
 
 An independent, local Python compiler for the RiftStack Emmy Hackathon 2026.
 It reads Emmy Kernel IR with `emmy-ml==0.3.11` and emits PTX using our own lowering.
-The current slice handles one-dimensional, statically sized f32 addition kernels,
-including the unrolled two-element cells in official `p00_scalar_add` and
-`p01_vector_add`.
+The current slice handles one-dimensional, statically sized f32 addition,
+multiplication and ReLU, with runtime constant buffers. All four official
+pointwise cases (`p00` through `p03`) compile locally.
 
-**Status: official p00/p01 passed PTX assembly, GPU execution and output comparison.**
+**Status: 62 local tests pass; p00/p01 have prior GPU PASS evidence.**
+p02/p03 match their official expected arrays in a CPU model; they have not yet
+been assembled or executed on a GPU. The model is a test helper, not a PTX backend.
 This is an initial working slice, not a completed competition MVP. See
 [build status](docs/STATUS.md) and [architecture and supported scope](docs/ARCHITECTURE.md).
 
@@ -52,10 +54,14 @@ The root entry point follows the official contract:
 source .venv312/bin/activate
 python compile.py .reference/problems/p00_scalar_add/k_add_pointwise.ir.json > /tmp/emmy-p00.ptx
 python compile.py .reference/problems/p01_vector_add/k_add_pointwise.ir.json > /tmp/emmy-p01.ptx
+python compile.py .reference/problems/p02_scale_shift/k_add_pointwise.ir.json > /tmp/emmy-p02.ptx
+python compile.py .reference/problems/p03_relu_mul/k_mul_pointwise.ir.json > /tmp/emmy-p03.ptx
 ```
 
 Keep each IR next to its official `meta.json`. Kernel entry names come from the
-IR; pointer parameter order comes from the matching metadata row. Successful
+IR; pointer parameter order comes from the matching metadata row. Its `args`
+descriptors must agree with `arg_order`, buffer types/shapes and input/output roles.
+Constants remain pointer arguments whose values are supplied by the runtime. Successful
 stdout is ASCII PTX only. Unsupported operations and invalid input produce a
 nonzero exit with a diagnostic on stderr and no partial PTX.
 
@@ -68,7 +74,9 @@ JSON upload service or a security sandbox.
 - `compile.py`: command-line entry point.
 - `emmy_ptx/loader.py`: official IR deserialization and launch/ABI validation.
 - `emmy_ptx/ptx.py`: typed statement walk, virtual registers and direct PTX emission.
-- `tests/test_compiler.py`: deterministic local tests; no GPU or runner calls.
+- `tests/`: parser/ABI/CLI regressions, pointwise structure checks and a small CPU
+  model for numeric and address-flow tests; no GPU or runner calls.
+- `docs/NUMERICS.md`: rounding, ReLU exceptional values and the reference discrepancy.
 - `tools/fetch_reference.py`: immutable public reference downloads.
 - `tools/run_official.py`: bounded wrapper around the reviewed official runner client;
   requires separate authorization before uploading PTX or running GPU tests.
@@ -78,6 +86,10 @@ JSON upload service or a security sandbox.
 
 The two approved official runner tests passed on an RTX 5090 with zero maximum
 absolute error. See [runner results](docs/RUNNER_RESULTS.md) for exact commands,
-stdout, receipts and limits. Next step: extend pointwise coverage before reductions. The source mirror is the private repository
+stdout, receipts and limits. The newly generated p00/p01 PTX has the same hashes
+as those receipts; no new GPU requests were made for this extension. Next step:
+separately authorize p02/p03 assembly and GPU comparison using the minimal payload
+listed in [build status](docs/STATUS.md), then begin reductions. The source mirror is the private repository
 [Xuefeng-Zhu/emmy-compiler](https://github.com/Xuefeng-Zhu/emmy-compiler).
-Other official cases, hidden-set validation and competition submission remain pending.
+The p02/p03 extension and recent validation commits remain local and unpushed.
+Reduction coverage, hidden-set validation and competition submission remain pending.

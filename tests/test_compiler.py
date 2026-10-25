@@ -160,8 +160,8 @@ class CompilerTests(unittest.TestCase):
             compile_file(self.path)
 
     def test_unknown_arithmetic_fails_clearly(self):
-        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('mul')")
-        with self.assertRaisesRegex(CompileError, r"(?i)(mul|assign|unsupported)"):
+        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('divide')")
+        with self.assertRaisesRegex(CompileError, r"(?i)(divide|assign|unsupported)"):
             compile_file(self.path)
 
     def test_undefined_ssa_value_is_rejected(self):
@@ -232,7 +232,7 @@ class CompilerTests(unittest.TestCase):
                 self.assertTrue(result.stderr.strip())
 
     def test_cli_failure_has_no_partial_ptx_stdout(self):
-        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('mul')")
+        self.replace_body("ElementwiseImpl('add')", "ElementwiseImpl('divide')")
         result = self.run_cli(self.path)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
