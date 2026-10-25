@@ -151,4 +151,7 @@ class Emitter:
 
 
 def emit(kernel: Kernel) -> str:
+    if len(kernel.body) == 1 and isinstance(kernel.body[0], Tile) and kernel.body[0].block_threads is not None:
+        from .reduction import ReductionEmitter
+        return ReductionEmitter(kernel).run()
     return Emitter(kernel).run()

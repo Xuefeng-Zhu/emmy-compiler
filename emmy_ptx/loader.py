@@ -21,6 +21,7 @@ class Kernel:
     outputs: frozenset[str]
     grid: tuple[int, ...]
     block: tuple[int, ...]
+    scalar_outputs: frozenset[str] = frozenset()
 
 
 def require(condition: bool, message: str) -> None:
@@ -79,12 +80,18 @@ def load_kernel(path: Path) -> Kernel:
             require(tensor.name not in tensors, f'duplicate buffer: {tensor.name}')
             tensors[tensor.name] = tensor
     shapes = {}
+    scalar_outputs = set()
     for name in order:
         require(name in tensors, f'unknown buffer: {name}')
         t = tensors[name]
         require(t.dtype.name == 'f32', f'unsupported dtype for {name}: {t.dtype.name}')
-        require(len(t.shape) == 1 and t.shape[0].is_static, f'{name}: only static 1-D buffers supported')
-        size = t.shape[0].as_static()
+        if len(t.shape) == 0:
+            require(name in outputs, f'{name}: rank-0 input buffers are unsupported')
+            scalar_outputs.add(name)
+            size = 1  # Official scalar outputs use a one-element pointer ABI.
+        else:
+            require(len(t.shape) == 1 and t.shape[0].is_static, f'{name}: only static 1-D buffers supported')
+            size = t.shape[0].as_static()
         require(0 < size < 2**31, f'{name}: invalid or oversized buffer')
         shapes[name] = size
     args = launch.get('args')
@@ -110,5 +117,5 @@ def load_kernel(path: Path) -> Kernel:
         geometry.append(tuple(dims))
     grid, block = geometry
     require(block[0] <= 1024 and grid[0] * block[0] < 2**31, 'unsupported launch size')
-    require(launch.get('smem_bytes', 0) == 0 and not launch.get('zero_outputs', []), 'shared memory and zero_outputs are unsupported')
-    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block)
+    require(launch.get('smem_bytes', 0) == 0 and not launch.get('zero_outputs', []), 'dynamic shared memory and zero_outputs are unsupported')
+    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block, frozenset(scalar_outputs))

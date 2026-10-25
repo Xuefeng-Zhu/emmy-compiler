@@ -52,11 +52,12 @@ class PointwiseTests(unittest.TestCase):
         self.assertNotIn('add.rn.f32', ptx)
         self.assertNotIn('.ftz.', ptx)
 
-    def test_p00_p01_ptx_matches_previously_gpu_verified_artifacts(self):
-        for problem in ('p00_scalar_add', 'p01_vector_add'):
+    def test_all_pointwise_ptx_matches_previously_gpu_verified_artifacts(self):
+        for problem in ('p00_scalar_add', 'p01_vector_add', 'p02_scale_shift', 'p03_relu_mul'):
             with self.subTest(problem=problem):
                 self.fixture(problem)
-                receipt = json.loads((ROOT / 'docs/validation/2026-10-24' / f'{problem}.json').read_text())
+                date = '2026-10-24' if problem in ('p00_scalar_add', 'p01_vector_add') else '2026-10-25'
+                receipt = json.loads((ROOT / 'docs/validation' / date / f'{problem}.json').read_text())
                 self.assertEqual(hashlib.sha256(compile_file(self.path).encode()).hexdigest(), receipt['ptx_sha256'])
 
     def test_constant_names_and_parameter_order_are_not_hardcoded(self):
