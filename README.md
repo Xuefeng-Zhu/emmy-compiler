@@ -14,6 +14,10 @@ and **14/14 fresh GPU checks**. The three changed public artifacts (f02/a01/a02)
 passed again; the other twelve public PTX artifacts are byte-identical to their
 GPU-passed versions.
 
+The current [CPU CI/reproduction checks](docs/CI.md) add 18 integrity and failure-
+propagation tests: **240 local tests pass** in a fresh Python 3.12.12 environment.
+The compiler and previously validated PTX are unchanged.
+
 ## Setup
 
 Use Python 3.12+ with `venv` and `pip`. The pinned environment was validated with
@@ -23,14 +27,21 @@ toolkit, torch, account or credentials.
 ```sh
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.lock
+python -m pip --isolated --disable-pip-version-check install --only-binary=:all: --index-url https://pypi.org/simple -r requirements.lock
+python -m pip --isolated check
 python tools/fetch_reference.py
-python -m unittest discover -s tests -v
+python tools/fetch_reference.py --verify-only
+python tools/run_tests.py
+python tools/check_cli.py
 ```
 
 The reference fetcher downloads public fixtures and documentation from a fixed
 official commit and verifies their SHA-256 hashes. It runs no upstream scripts.
-`.reference/` is excluded from Git. For an interpreter with a broken SQLite
+`.reference/` is excluded from Git. The [CPU CI workflow](.github/workflows/ci.yml)
+repeats installation, fixture verification, the complete suite and all 15 CLI
+emissions on Python 3.12.12 / Linux. It rejects empty or skipped test suites and
+does not contact the GPU runner. See [clean-environment reproduction](docs/CI.md).
+For an interpreter with a broken SQLite
 module, see the optional [development environment notes](docs/DEVELOPMENT.md).
 
 ## Compile

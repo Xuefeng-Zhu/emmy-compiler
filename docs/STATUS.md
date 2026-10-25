@@ -1,5 +1,20 @@
 # Build status
 
+## CPU CI and clean-environment checkpoint — October 25, 2026 (UTC)
+
+A fresh Python 3.12.12 virtual environment on macOS arm64 installed all 37 locked
+dependencies as PyPI wheels; `pip check` passed. The initially empty reference
+cache fetched and verified all 82 pinned files. **240 local tests passed in
+148.376 seconds, exit 0, with no skips**. Fifteen CLI emissions and two invalid-
+input checks passed, and every PTX hash matches its previously GPU-validated
+artifact. This change adds 18 integrity/CI regressions and changes no compiler
+algorithm, fixture, dependency version or numerical tolerance. No GPU jobs ran.
+
+The new read-only GitHub Actions workflow performs the clean install and CPU
+checks on Python 3.12.12 / Ubuntu 24.04. Local results do not establish a remote
+CI pass; the exact push commit and its Actions check provide that result.
+See [CI reproduction](CI.md) and [local evidence](validation/2026-10-25-ci/).
+
 ## Latest exp accuracy checkpoint — October 25, 2026 (UTC)
 
 Only common natural-exp lowering changed from source baseline `ee40e27`.

@@ -12,13 +12,19 @@ UV_CACHE_DIR=/tmp/emmy-uv-cache UV_PYTHON_INSTALL_DIR="$PWD/.python" uv python i
 UV_CACHE_DIR=/tmp/emmy-uv-cache UV_PYTHON_INSTALL_DIR="$PWD/.python" uv venv --python 3.12.12 .venv312
 UV_CACHE_DIR=/tmp/emmy-uv-cache uv pip install --python .venv312/bin/python -r requirements.lock
 .venv312/bin/python tools/fetch_reference.py
-.venv312/bin/python -m unittest discover -s tests -v
+.venv312/bin/python tools/fetch_reference.py --verify-only
+.venv312/bin/python tools/run_tests.py
+.venv312/bin/python tools/check_cli.py
 ```
 
 `requirements.lock` records the complete environment resolved on macOS arm64 with
 CPython 3.12.12. Other platforms need compatible package wheels. The compiler
 itself uses Emmy for typed IR loading and emits PTX without invoking a CUDA
 compiler.
+
+For the version-pinned CPU workflow and a fresh-install procedure, see
+[CI and reproduction](CI.md). The optional runner dependencies are not installed
+in CI; transport checks use mocks.
 
 ## Evidence
 
