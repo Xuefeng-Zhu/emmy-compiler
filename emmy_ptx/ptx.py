@@ -1,6 +1,7 @@
 """Our small, direct IR-to-PTX lowering. No Emmy backend or external compiler."""
 from collections import defaultdict
 
+from emmy.compiler.ir.elementwise import ElementwiseImpl
 from emmy.compiler.ir.expr import BinaryExpr, Literal, Var
 from emmy.compiler.ir.kernel.ir import Tile
 from emmy.compiler.ir.stmt.leaves import Assign, Load, Write
@@ -27,10 +28,12 @@ class Emitter:
         self.lines.append('    ' + text)
 
     def bind(self, name, value):
+        require(isinstance(name, str) and bool(name), 'SSA definition name must be a nonempty string')
         require(name not in self.values, f'duplicate SSA definition: {name}')
         self.values[name] = value
 
     def value(self, name):
+        require(isinstance(name, str) and bool(name), 'SSA operand must be a nonempty string')
         require(name in self.values, f'undefined SSA value: {name}')
         return self.values[name]
 
@@ -85,6 +88,8 @@ class Emitter:
                 self.put(f'ld.global.f32 {dst}, [{addr}+{i * 4}];')
         elif isinstance(stmt, Assign):
             require(getattr(stmt.dtype, 'name', None) == 'f32', 'Assign: only f32 supported')
+            require(isinstance(stmt.op, ElementwiseImpl), 'Assign: operator must be an ElementwiseImpl')
+            require(isinstance(stmt.args, (tuple, list)) and all(isinstance(arg, str) and arg for arg in stmt.args), 'Assign: args must be a sequence of nonempty SSA names')
             require(stmt.op.name == 'add' and len(stmt.args) == 2, f'unsupported elementwise operation: {stmt.op.name}')
             a, b = (self.value(arg) for arg in stmt.args)
             dst = self.reg('f')

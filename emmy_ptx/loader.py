@@ -83,8 +83,12 @@ def load_kernel(path: Path) -> Kernel:
     args = launch.get('args')
     require(isinstance(args, list) and all(isinstance(a, dict) for a in args), 'meta.json: invalid args descriptors')
     require(all(isinstance(a.get('name'), str) for a in args), 'meta.json: argument names must be strings')
-    require(len(args) == len(order) and {a.get('name') for a in args} == set(order), 'meta.json: args must describe every buffer once')
+    require([a['name'] for a in args] == order, 'meta.json: args order must exactly match arg_order')
     for a in args:
+        require(a.get('scalar', False) is False, 'meta.json: by-value scalar arguments are unsupported; buffers require pointers')
+        require(type(a.get('output', False)) is bool and a.get('output', False) == (a['name'] in outputs), f'meta.json: output role mismatch for {a["name"]}')
+        require(a.get('intermediate', False) is False, 'meta.json: intermediate arguments are unsupported')
+        require(isinstance(a.get('shape'), list) and all(type(d) is int for d in a['shape']), 'meta.json: argument shape must contain integers')
         require(a.get('dtype') == 'f32' and a.get('shape') == [shapes[a['name']]], f'meta.json: buffer descriptor mismatch for {a["name"]}')
     geometry = []
     for key in ('grid', 'block'):

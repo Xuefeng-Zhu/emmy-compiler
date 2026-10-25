@@ -114,6 +114,7 @@ class CompilerTests(unittest.TestCase):
 
     def test_metadata_argument_order_controls_signature(self):
         self.meta["kernels"][0]["arg_order"] = ["add", "x1", "x0"]
+        self.meta["kernels"][0]["args"].reverse()
         self.save()
         ptx = compile_file(self.path)
         parameters = re.findall(r"\.param\s+\.u64\s+([A-Za-z_][A-Za-z_0-9]*)", ptx)
