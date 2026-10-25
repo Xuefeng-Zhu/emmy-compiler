@@ -1,6 +1,40 @@
 # Official runner validation
 
-## Latest regression — October 25, 2026 (UTC)
+## Latest exp accuracy validation — October 25, 2026 (UTC)
+
+All **14/14 fresh cases passed PTX assembly, RTX 5090 execution and expected-array
+comparison**, with exit 0, unchanged thresholds and `equal_nan=False`. Only
+common-exp lowering changed from source baseline `ee40e27`.
+
+| Scope | Cases | Fresh GPU result |
+| --- | --- | --- |
+| Changed public artifacts | f02, a01, a02 | 3/3 PASS |
+| Activation variants | s03–s09 | 7/7 PASS |
+| Guarded attention | s13, s14 | 2/2 PASS |
+| Wide-range and finite-boundary exp | s15, s16 | 2/2 PASS |
+
+The other twelve public PTX artifacts are byte-identical to GPU-passed versions;
+they were not rerun in this session. All 15 current public artifacts therefore
+retain matching GPU evidence.
+
+The wide-range exp diagnostic's 4097 values now have zero failures, down from
+251 under the same rtol=2e-6/atol=2e-7 threshold. Maximum relative error fell from
+3.6186774e-6 to 1.52530531e-7. The finite-boundary diagnostic's 1019 values pass,
+including matching zero classifications and sampled subnormal outputs. Maximum
+observed error is 2 ULP, with maximum relative error 1.6858741e-7 over normal
+expected outputs. Its finite upper input is 87; this is not a universal ULP
+bound or exceptional-input GPU claim.
+
+Exactly 14 compile and 14 GPU requests completed, with zero retries and zero
+uncertain outcomes. Local verification passed 222 tests in 149.783 seconds and
+25 focused tests in 0.842 seconds, both exit 0. NaN/infinity classifications
+were checked locally only. Single-iteration timings remain illustrative.
+
+See [EXP_ACCURACY_FIX.md](EXP_ACCURACY_FIX.md) and the
+[new evidence archive](validation/2026-10-25-exp-fix/). Earlier failures and
+measurements below are preserved as historical evidence.
+
+## Historical pre-fix regression — October 25, 2026 (UTC)
 
 Compiler source was unchanged at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
 The RTX 5090 assembled and ran the current r01–r04 PTX, each with actual PASS and

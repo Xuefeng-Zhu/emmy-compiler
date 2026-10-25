@@ -1,6 +1,30 @@
 # Build status
 
-## Latest regression checkpoint — October 25, 2026 (UTC)
+## Latest exp accuracy checkpoint — October 25, 2026 (UTC)
+
+Only common natural-exp lowering changed from source baseline `ee40e27`.
+**222 local tests passed in 149.783 seconds, exit 0**; the focused run passed
+25 tests in 0.842 seconds, exit 0. These are local CPU/static checks.
+
+All **14 fresh GPU checks passed** on NVIDIA GeForce RTX 5090 with unchanged
+tolerances and `equal_nan=False`: f02/a01/a02, seven activation cases (s03–s09),
+two guarded attention cases (s13/s14), and two exp diagnostics (s15/s16).
+The other twelve public PTX artifacts remain byte-identical to GPU-passed
+versions, preserving evidence for all 15 current public artifacts.
+
+The 4097-value wide-range exp diagnostic improved from 251 failures to zero;
+maximum relative error fell from 3.6186774e-6 to 1.52530531e-7. The 1019-value
+finite-boundary diagnostic also passed, with matching zero classifications,
+maximum observed 2 ULP and maximum relative error 1.6858741e-7 over normal
+expected outputs. This sampled result is not a universal accuracy guarantee;
+NaN/infinity classifications remain local-only checks.
+
+Exactly 14 compile and 14 GPU requests completed, with zero retries and zero
+uncertain outcomes. See the [exp accuracy report](EXP_ACCURACY_FIX.md) and
+[retained evidence](validation/2026-10-25-exp-fix/). The historical failure and
+prior checkpoint below remain part of the record.
+
+## Historical pre-fix regression checkpoint — October 25, 2026 (UTC)
 
 Compiler source remains at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
 The existing 194-test suite passed again in 134.921 seconds (exit 0). With eight

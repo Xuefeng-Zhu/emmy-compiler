@@ -14,19 +14,24 @@ pinned TASK.md/MVP.md listed in CHALLENGE.md.
 - Local parser, ABI, address, numeric-model and malformed-IR tests are available
   with `python -m unittest discover -s tests -v`.
 - All 15 current public artifacts have matching GPU evidence: the latest session
-  reran r01–r04 successfully and verified the other eleven PTX hashes unchanged
-  from earlier passes. Original official tolerances remain intact.
-- Latest local validation: 210 tests passed in 138.357 seconds, exit 0. This
-  includes eight new CPU checks and eight mocked-client tests.
-- Fourteen normal synthetic GPU cases passed. A separate wide-range exp
-  diagnostic failed at 251 of 4097 values under its unchanged local threshold;
-  the shared range-reduced-exp proposal is not implemented.
-- [Generalization validation](GENERALIZATION_VALIDATION.md) and the
-  [latest evidence archive](validation/2026-10-25-regression/) record this bounded
-  test checkpoint. Compiler source remained at
-  `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`; no production change or push was made.
+  reran changed f02/a01/a02 successfully and verified the other twelve PTX
+  artifacts byte-identical to GPU-passed versions. Official tolerances and
+  `equal_nan=False` remain unchanged.
+- Latest local validation: 222 tests passed in 149.783 seconds and 25 focused
+  tests passed in 0.842 seconds, both exit 0.
+- All 14 fresh GPU checks passed: three changed public cases, seven activation
+  variants, two guarded attention cases and two exp diagnostics. The shared
+  range-reduced-exp implementation fixes the sampled 4097-value diagnostic:
+  zero failures, down from 251 under its original threshold.
+- The 1019-value finite-boundary GPU sample also passes, including sampled
+  zero/subnormal results. Its maximum observed 2 ULP is not a universal bound;
+  NaN/infinity classification checks remain local only.
+- The [exp accuracy report](EXP_ACCURACY_FIX.md) and
+  [latest evidence archive](validation/2026-10-25-exp-fix/) record the common-exp
+  change from baseline `ee40e27`. The [earlier report](GENERALIZATION_VALIDATION.md)
+  preserves the original failure evidence.
 - Hidden tests, universal exceptional-input behavior and sustained performance
-  remain unverified. The exp diagnostic must not be presented as fixed.
+  remain unverified.
 
 ## User-owned prerequisites
 
@@ -59,8 +64,9 @@ have GPU PASS receipts.
 - **2:50–3:35 — Evidence.** Run local tests; distinguish a CPU instruction model
   from PTX assembly/GPU output comparison. Show actual retained GPU receipts.
 - **3:35–4:00 — What the evidence covers.** Distinguish current public-artifact
-  GPU evidence, the 14 passing synthetic GPU cases and CPU-model checks. Show
-  the wide-range exp counterexample and explain that the proposed fix is pending.
+  GPU evidence, the 14 fresh passing checks and CPU-model checks. Show the
+  original wide-range exp failure, the range-reduction change and its passing
+  retest; explain why the sampled boundary result is not a universal guarantee.
 
 The [Chinese walkthrough](WALKTHROUGH.md) expands this outline around the common
 emission layer and schedule-specific extensions. A recording still needs to be

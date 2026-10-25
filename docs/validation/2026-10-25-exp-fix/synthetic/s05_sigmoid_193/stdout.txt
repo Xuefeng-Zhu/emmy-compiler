@@ -1,0 +1,2 @@
+[s05_sigmoid_193] 13 registers
+[s05_sigmoid_193] PASS  add: max abs err 5.960e-08  (20.416 us)

@@ -1,0 +1,2 @@
+[s09_gelu_tanh_193] 18 registers
+[s09_gelu_tanh_193] PASS  add: max abs err 4.768e-07  (20.448 us)

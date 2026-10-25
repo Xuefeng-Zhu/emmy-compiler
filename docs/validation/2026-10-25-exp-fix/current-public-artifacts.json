@@ -1,0 +1,107 @@
+[
+  {
+    "case": "p00_scalar_add",
+    "ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+    "previous_ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "p01_vector_add",
+    "ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+    "previous_ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "p02_scale_shift",
+    "ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+    "previous_ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "p03_relu_mul",
+    "ptx_sha256": "967720bf8d816d245c886333b8be6e0f2bbc47e7719896d70612710e03ef18dc",
+    "previous_ptx_sha256": "967720bf8d816d245c886333b8be6e0f2bbc47e7719896d70612710e03ef18dc",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "r01_array_sum",
+    "ptx_sha256": "670c918236825f9f62c9133940860bd6f3438bf8247cd3d0b7d1a6bc280b609d",
+    "previous_ptx_sha256": "670c918236825f9f62c9133940860bd6f3438bf8247cd3d0b7d1a6bc280b609d",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "r02_big_sum",
+    "ptx_sha256": "d09428e33a3b5788e61bcbd9953b3513e785c9bbd7bc5214448a302d2a436369",
+    "previous_ptx_sha256": "d09428e33a3b5788e61bcbd9953b3513e785c9bbd7bc5214448a302d2a436369",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "r03_mean",
+    "ptx_sha256": "3d1de8375b707408c2deee577fa62316a367909908da9ca716ddbf9f2791dbda",
+    "previous_ptx_sha256": "3d1de8375b707408c2deee577fa62316a367909908da9ca716ddbf9f2791dbda",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "r04_row_sum",
+    "ptx_sha256": "7dd777611544979bd2427a0dae47e3d957ec33475ba87c1ee17fadb9abf1afad",
+    "previous_ptx_sha256": "7dd777611544979bd2427a0dae47e3d957ec33475ba87c1ee17fadb9abf1afad",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "f01_rmsnorm",
+    "ptx_sha256": "be81e0e38b2666d47c8455c220e3d91e1a714b084c2e6f39ea265024739ae8a7",
+    "previous_ptx_sha256": "be81e0e38b2666d47c8455c220e3d91e1a714b084c2e6f39ea265024739ae8a7",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "f02_row_softmax",
+    "ptx_sha256": "26e392dd7c321163606310b29ffcddafe905f5d7424ed34eb7a8f44931f3b7fa",
+    "previous_ptx_sha256": "97228c0a06c60138a42a689c0fdbc533b48bc74103108efac83ad13204069eee",
+    "changed": true,
+    "evidence": "fresh GPU PASS"
+  },
+  {
+    "case": "f03_l2norm",
+    "ptx_sha256": "e452869238ed9a31e71fecd581baba3299d48f7e322e7ba6634bf7e79a6c2424",
+    "previous_ptx_sha256": "e452869238ed9a31e71fecd581baba3299d48f7e322e7ba6634bf7e79a6c2424",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "a01_attention",
+    "ptx_sha256": "41301bbfe2fdd7d6c95104fa1ed374aa713b33d4081221914c4d9a5a71d67c2e",
+    "previous_ptx_sha256": "4686359ca9b0d29ee73025853fff7bab56e73694498d387099aefd7a94185afc",
+    "changed": true,
+    "evidence": "fresh GPU PASS"
+  },
+  {
+    "case": "a02_attention_128",
+    "ptx_sha256": "13b0a2823247cfb0b28115e2d8ef9a82c8f55d2784faf8471900d456ab2cd434",
+    "previous_ptx_sha256": "752f64627a01de125f4aeeccdb02a9ce64391aefc495ceae95c2aa44276bc4d7",
+    "changed": true,
+    "evidence": "fresh GPU PASS"
+  },
+  {
+    "case": "m01_matmul_512",
+    "ptx_sha256": "03478118931c84bed72baaea6d1e056dd37573059f8c19e6c7348f42fcd91722",
+    "previous_ptx_sha256": "03478118931c84bed72baaea6d1e056dd37573059f8c19e6c7348f42fcd91722",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  },
+  {
+    "case": "m02_matmul_rect",
+    "ptx_sha256": "29559498cff54a7c51790c7fec59f3364e95beffb4c03fe5da399a561dcf148c",
+    "previous_ptx_sha256": "29559498cff54a7c51790c7fec59f3364e95beffb4c03fe5da399a561dcf148c",
+    "changed": false,
+    "evidence": "byte-identical to previous GPU-passed artifact"
+  }
+]

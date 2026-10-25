@@ -1,0 +1,73 @@
+.version 8.0
+.target sm_89
+.address_size 64
+
+.visible .entry s09_gelu_tanh_193(
+    .param .u64 param_x0,
+    .param .u64 param_add
+)
+{
+    .reg .pred %p<2>;
+    .reg .b32 %r<4>;
+    .reg .b64 %rd<8>;
+    .reg .f32 %f<39>;
+    ld.param.u64 %rd0, [param_x0];
+    cvta.to.global.u64 %rd1, %rd0;
+    ld.param.u64 %rd2, [param_add];
+    cvta.to.global.u64 %rd3, %rd2;
+    mov.u32 %r0, %tid.x;
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mad.lo.u32 %r3, %r1, %r2, %r0;
+    setp.ge.u32 %p0, %r3, 193;
+    @%p0 bra DONE;
+    mul.wide.u32 %rd4, %r3, 4;
+    add.u64 %rd5, %rd1, %rd4;
+    ld.global.f32 %f0, [%rd5+0];
+    mul.rn.f32 %f2, %f0, %f0;
+    mul.rn.f32 %f3, %f2, %f0;
+    mul.rn.f32 %f4, 0f3d372713, %f3;
+    add.rn.f32 %f5, %f0, %f4;
+    mul.rn.f32 %f6, 0f3f4c422a, %f5;
+    abs.f32 %f8, %f6;
+    mul.rn.f32 %f9, %f8, 0fc0000000;
+    max.NaN.f32 %f11, %f9, 0fc2d00000;
+    min.NaN.f32 %f12, %f11, 0f42b20000;
+    mul.rn.f32 %f13, %f12, 0f3fb8aa3b;
+    cvt.rni.f32.f32 %f14, %f13;
+    mul.rn.f32 %f15, %f14, 0f3f317200;
+    sub.rn.f32 %f16, %f12, %f15;
+    mul.rn.f32 %f17, %f14, 0f35bfbe8e;
+    sub.rn.f32 %f18, %f16, %f17;
+    mul.rn.f32 %f19, %f18, 0f3fb8aa3b;
+    ex2.approx.f32 %f20, %f19;
+    mul.rn.f32 %f21, %f14, 0f3f000000;
+    cvt.rzi.f32.f32 %f21, %f21;
+    sub.rn.f32 %f22, %f14, %f21;
+    ex2.approx.f32 %f23, %f21;
+    ex2.approx.f32 %f24, %f22;
+    mul.rn.f32 %f25, %f20, %f23;
+    mul.rn.f32 %f10, %f25, %f24;
+    sub.rn.f32 %f26, 0f3f800000, %f10;
+    add.rn.f32 %f27, 0f3f800000, %f10;
+    div.rn.f32 %f28, %f26, %f27;
+    copysign.f32 %f7, %f6, %f28;
+    mul.rn.f32 %f29, %f6, %f6;
+    mul.rn.f32 %f30, 0fbd5d0dd1, %f29;
+    add.rn.f32 %f31, %f30, 0f3e088889;
+    mul.rn.f32 %f32, %f31, %f29;
+    add.rn.f32 %f33, %f32, 0fbeaaaaab;
+    mul.rn.f32 %f34, %f33, %f29;
+    add.rn.f32 %f35, %f34, 0f3f800000;
+    mul.rn.f32 %f36, %f6, %f35;
+    setp.le.f32 %p1, %f8, 0f3e000000;
+    selp.f32 %f7, %f36, %f7, %p1;
+    add.rn.f32 %f37, 0f3f800000, %f7;
+    mul.rn.f32 %f38, 0f3f000000, %f0;
+    mul.rn.f32 %f1, %f38, %f37;
+    mul.wide.u32 %rd6, %r3, 4;
+    add.u64 %rd7, %rd3, %rd6;
+    st.global.f32 [%rd7+0], %f1;
+DONE:
+    ret;
+}

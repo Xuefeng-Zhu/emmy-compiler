@@ -9,10 +9,10 @@ expected-array comparison with the original tolerances.**
 [GPU receipts and results](docs/RUNNER_RESULTS.md) preserve every pass and the
 corrected matmul assembly failure. The local suite also checks changed shapes,
 operation combinations, ABI order and invalid IR.
-The latest [generalization validation](docs/GENERALIZATION_VALIDATION.md) passes
-**210 local tests**. Current public-artifact evidence consists of four fresh
-reduction GPU passes and eleven PTX hashes identical to earlier GPU-passed
-artifacts; only the four reductions were rerun.
+The latest [exp accuracy fix](docs/EXP_ACCURACY_FIX.md) passes **222 local tests**
+and **14/14 fresh GPU checks**. The three changed public artifacts (f02/a01/a02)
+passed again; the other twelve public PTX artifacts are byte-identical to their
+GPU-passed versions.
 
 ## Setup
 
@@ -63,14 +63,16 @@ Python expressions internally, so this CLI is not suitable for hostile uploads.
 | Attention | a01–a02 | 2/2 PASS |
 | Matrix multiplication | m01–m02 | 2/2 PASS |
 
-The saved GPU runs cover these public fixtures. The October 25 regression also
-passed 14 synthetic GPU cases: two odd-shaped matrix adds, seven activation cases,
-three reductions and two guarded attention cases. A separate wide-range exp
-diagnostic failed its unchanged threshold; it is an open numerical limitation,
-not a fixed defect or a hidden-set pass. Each recorded GPU launch used no warmup
-and one iteration, so timings are illustrative. See the
-[validation report](docs/GENERALIZATION_VALIDATION.md) and
-[latest evidence archive](docs/validation/2026-10-25-regression/).
+The saved GPU runs cover these public fixtures. The latest common-exp change
+also passed seven activation cases, two guarded attention cases, the 4097-value
+wide-range diagnostic and a 1019-value finite-boundary diagnostic. The wide-range
+diagnostic now has zero failures, down from 251, with its original threshold.
+The finite-boundary sample includes zero/subnormal outputs; it does not establish
+universal f32 accuracy. Official tolerances and `equal_nan=False` are unchanged.
+Single-iteration timings are illustrative. See the
+[exp accuracy report](docs/EXP_ACCURACY_FIX.md),
+[latest evidence archive](docs/validation/2026-10-25-exp-fix/) and preserved
+[earlier regression](docs/GENERALIZATION_VALIDATION.md).
 
 Local variants cover exp/tanh/sigmoid/SiLU/GELU and abs compositions, rank-2 add,
 row maximum, transformed reductions such as sum of squares, and conditional

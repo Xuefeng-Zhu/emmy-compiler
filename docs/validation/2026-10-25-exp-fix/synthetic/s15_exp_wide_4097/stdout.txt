@@ -1,0 +1,2 @@
+[s15_exp_wide_4097] 14 registers
+[s15_exp_wide_4097] PASS  add: max abs err 4.952e+27  (15.104 us)

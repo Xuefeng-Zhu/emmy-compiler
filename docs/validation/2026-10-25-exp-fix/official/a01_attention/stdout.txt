@@ -1,0 +1,2 @@
+[k_matmul_softmax_reduce_b55365] 128 registers
+[k_matmul_softmax_reduce_b55365] PASS  matmul_1: max abs err 6.557e-07  (142.496 us)

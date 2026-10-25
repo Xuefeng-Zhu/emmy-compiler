@@ -9,9 +9,11 @@ IR operation order and preserves intermediate rounding:
 | multiply | `mul.rn.f32` | Round to nearest, ties to even |
 | relu | `max.NaN.f32 x, +0` | Propagate NaN; negative values and -0 become +0 |
 
-No `.ftz` modifier is emitted, so subnormals are preserved. Explicit `.rn`
-modifiers constrain optimizer contraction of multiply/add into FMA; the compiler
-does not fuse or reassociate arithmetic. `max.NaN` is available in PTX 7.0+ on
+Ordinary add/multiply use `.rn` without `.ftz`, preserving subnormals for those
+instructions on the target. Their explicit rounding constrains contraction into
+FMA; emitted arithmetic remains separately rounded and is not reassociated.
+This is not a blanket claim about every operation: global atomic addition has
+different subnormal behavior, described below. `max.NaN` is available in PTX 7.0+ on
 sm_80+, within our PTX 8.0/sm_89 target. It returns canonical NaN; preservation of
 NaN payloads is not promised. These choices were checked against NVIDIA's
 [add](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-add),
@@ -75,7 +77,27 @@ map to their corresponding operations.
 
 `abs.f32` clears the sign bit, including on negative zero. Divide and sqrt use
 explicit `.rn`; rsqrt computes rounded sqrt followed by rounded reciprocal.
-Natural exp multiplies by the f32 value of log2(e), then uses `ex2.approx.f32`.
+Natural exp uses range reduction in this shared path. It first clamps x to
+[-104, 89] with NaN-propagating min/max, then computes:
+
+1. `n = cvt.rni.f32.f32(x * log2(e))`, rounding to an integral float with ties
+   to even.
+2. `r = (x - n * ln2_hi) - n * ln2_lo`, with separately rounded f32 operations;
+   `ln2_hi = 0f3f317200` and `ln2_lo = 0f35bfbe8e`.
+3. `partial = ex2.approx.f32(r * log2(e))`.
+4. `half = cvt.rzi.f32.f32(n / 2)` and `rest = n - half`; evaluate the two
+   scale factors with `ex2.approx.f32`, preserving multiplication order
+   `(partial * first_scale) * second_scale`.
+
+The two scale exponents stay in [-75, 64], keeping both scale factors normal
+before the final products. All three exp2 instructions are approximate; integer
+arguments are not assumed to produce exact powers of two. The sequence avoids
+an overflowing single scale factor and retains separate rounding without FMA.
+It does not promise correctly rounded exp or a universal ULP bound. See NVIDIA's
+[cvt](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-cvt)
+and [ex2](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#floating-point-instructions-ex2)
+references and the [implementation validation](EXP_ACCURACY_FIX.md).
+
 Sigmoid follows `1 / (1 + exp(-x))`, and SiLU follows
 `x / (1 + exp(-x))`, matching the pinned Emmy operation formulas.
 
@@ -97,26 +119,33 @@ An independent hand-written PTX probe checks this operand convention in the mode
 Local activation regressions compare finite samples and composed kernels against
 NumPy and Python's `math.erf`, including changed shapes and rank-2 addressing. The CPU models use
 mathematical float32 exp2, so these tests do not measure NVIDIA's approximation
-error. The October 25 regression now includes seven finite activation GPU
-cases, recorded in [GENERALIZATION_VALIDATION.md](GENERALIZATION_VALIDATION.md)
-and the [latest archive](validation/2026-10-25-regression/). These bounded samples
-do not establish accuracy across the full f32 range.
+error. Seven finite activation GPU cases and two guarded attention cases passed
+again after the common-exp change, alongside the changed public f02/a01/a02
+artifacts. The [exp accuracy report](EXP_ACCURACY_FIX.md) and
+[latest archive](validation/2026-10-25-exp-fix/) retain the results. These bounded
+samples do not establish accuracy across the full f32 range.
 
-### Wide-range exp diagnostic — October 25, 2026 (UTC)
+### Wide-range exp diagnostic and fix — October 25, 2026 (UTC)
 
-On 4097 values spanning [-80, 80], GPU exp failed at 251 values under the unchanged
+Before range reduction, on 4097 values spanning [-80, 80], GPU exp failed at 251 values under the unchanged
 rtol=2e-6/atol=2e-7 threshold; the CPU model failed at 257. These thresholds come
 from existing local activation tests: there is no official tolerance for these
 new activation cases. The maximum relative GPU error over the full array was
 3.6186774e-6. One counterexample is x=44.609375: expected 2.363770999e19,
 actual 2.3637635225e19, relative error approximately 3.163e-6.
 
-This is an observed limitation, not a repaired failure. The minimal proposed
-change is range-reduced exp in the shared `Emitter.emit_math` path, followed by
-revalidation of affected operations. That change has not been implemented;
-compiler source remains at `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`.
-No tolerances were relaxed. Full receipts and diagnostic details are linked in
-the validation report above.
+Range reduction now fixes this sampled failure under the same thresholds:
+zero of 4097 GPU values fail, and maximum relative error falls to
+1.52530531e-7. A separate 1019-value finite-boundary GPU sample passes, including
+matching zero classifications and sampled subnormal outputs. Its maximum
+observed error is 2 ULP, and maximum relative error over normal expected outputs
+is 1.6858741e-7. Its upper finite input is 87; these observations are not a
+universal 2-ULP or full-overflow-boundary guarantee.
+
+NaN and infinity classification checks remain local only. Original tolerances
+and `equal_nan=False` are unchanged. The [earlier report](GENERALIZATION_VALIDATION.md)
+and failure receipts preserve the pre-fix evidence; the
+[new report](EXP_ACCURACY_FIX.md) records the implementation and fresh GPU results.
 
 ## Single-block sum
 
@@ -150,10 +179,11 @@ all extreme-value or synchronization variants.
 ## Fused, attention and atomic reductions
 
 The shared scalar layer emits explicit `sub.rn.f32`, `div.rn.f32`, `sqrt.rn.f32`,
-NaN-propagating min/max and a natural-exp sequence `mul.rn.f32 log2(e)` followed
-by `ex2.approx.f32`. The local models calculate mathematical float32 exp2; they
-do not model the exact approximation error of GPU exp2. All finite public fused/attention fixtures subsequently passed GPU comparison;
-that is still not a bound on every input or GPU target. RMSNorm reads count, epsilon and weights from runtime
+NaN-propagating min/max and the range-reduced natural-exp sequence described
+above. The local models calculate mathematical float32 exp2; they do not model
+the exact approximation error of GPU exp2. The changed public softmax/attention
+artifacts (f02/a01/a02) passed fresh GPU comparison after this change; that is
+still not a bound on every input or GPU target. RMSNorm reads count, epsilon and weights from runtime
 buffers; L2Norm does not inject an epsilon absent from IR.
 
 Emmy's maximum identity is finite `-1e30`. Online-softmax state initialization

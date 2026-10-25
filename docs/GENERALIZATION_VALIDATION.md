@@ -1,5 +1,10 @@
 # Generalization validation — October 25, 2026 (UTC)
 
+> Historical checkpoint, superseded by the [exp accuracy fix](EXP_ACCURACY_FIX.md)
+> and its [new evidence archive](validation/2026-10-25-exp-fix/). Range reduction
+> fixes the sampled wide-range failure under unchanged thresholds. The original
+> results and failure receipts below remain unchanged as pre-fix evidence.
+
 Compiler under test: `0e16a83235a8b2180a9c40dc4ede06b8aa33d511`. Production compiler files were unchanged throughout this test task.
 
 The original local suite passed **194 tests in 134.921 seconds**. After adding eight CPU-model checks and eight mocked-transport checks, the expanded suite passed **210 tests in 138.357 seconds**, exit 0. These local suites perform no network or GPU work.

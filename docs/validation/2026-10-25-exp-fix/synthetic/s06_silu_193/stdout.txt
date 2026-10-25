@@ -1,0 +1,2 @@
+[s06_silu_193] 16 registers
+[s06_silu_193] PASS  add: max abs err 2.980e-08  (21.088 us)

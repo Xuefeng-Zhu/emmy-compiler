@@ -1,0 +1,2 @@
+[s16_exp_boundary_finite] 14 registers
+[s16_exp_boundary_finite] PASS  add: max abs err 5.071e+30  (20.992 us)

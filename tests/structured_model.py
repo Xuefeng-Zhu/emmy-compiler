@@ -188,6 +188,14 @@ def run_structured_ptx(ptx, launch, overrides=None, *, max_steps=2_000_000):
                     zero = np.where(negative, np.float32(-0.0), np.float32(0.0))
                     result = np.where((a == 0) & (b == 0), zero, result)
                 assign(args[0], np.asarray(result, np.float32), mask)
+            elif opcode in ('cvt.rni.f32.f32', 'cvt.rzi.f32.f32'):
+                # These modes round to an integral VALUE in a floating register.
+                # rni uses nearest/ties-to-even; rzi truncates toward signed zero.
+                # Preserve f32 at this instruction boundary, including +/-0,
+                # infinities and NaNs; do not convert through an integer type.
+                operation = np.rint if opcode == 'cvt.rni.f32.f32' else np.trunc
+                source = np.asarray(value(args[1], mask), np.float32)
+                assign(args[0], np.asarray(operation(source), np.float32), mask)
             elif opcode == 'copysign.f32':
                 assign(args[0], np.copysign(value(args[2], mask), value(args[1], mask)), mask)
             elif opcode in ('sqrt.rn.f32', 'ex2.approx.f32', 'rcp.rn.f32', 'abs.f32', 'neg.f32'):

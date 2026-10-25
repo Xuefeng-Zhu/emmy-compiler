@@ -1,0 +1,33 @@
+{
+  "actual_nonfinite": 0,
+  "atol": 2e-07,
+  "block": [
+    256,
+    1,
+    1
+  ],
+  "case": "s16_exp_boundary_finite",
+  "count": 1019,
+  "cpu_result": "PASS",
+  "entry": "s16_exp_boundary_finite",
+  "equal_nan": false,
+  "expected_nonfinite": 0,
+  "expected_sum_f32_finite": true,
+  "gpu_executed": false,
+  "grid": [
+    4,
+    1,
+    1
+  ],
+  "input_max": 87.0,
+  "input_min": -103.97232055664062,
+  "max_abs_error": 1.9807040628566084e+28,
+  "max_relative_error_nonzero": 3.371724917148289e-07,
+  "mismatched_values": 0,
+  "output": "add",
+  "provenance": "Typed scalar_fixture, finite neighboring f32 boundary inputs; independent float64 exp rounded to f32.",
+  "ptx_assembled": false,
+  "ptx_sha256": "43a59ea6841083920910ce4b7b3deacadde6ea0b5cb898516981a2cf3ca620d2",
+  "rtol": 2e-06,
+  "zero_classification_matches": true
+}

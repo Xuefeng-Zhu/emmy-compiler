@@ -92,9 +92,32 @@ class Emitter:
         require(len(operands) == arity[operation], f'{operation}: wrong operand count')
         dst = dst or self.reg('f')
         if operation == 'exp':
-            scaled = self.reg('f')
-            self.put(f'mul.rn.f32 {scaled}, {operands[0]}, 0f3fb8aa3b;')
-            self.put(f'ex2.approx.f32 {dst}, {scaled};')
+            # Outside this interval f32 exp rounds to zero or overflows. NaN
+            # propagating clamps also keep infinite inputs out of inf-inf below.
+            bounded = self.emit_math('maximum', [operands[0], literal(-104.0)])
+            bounded = self.emit_math('minimum', [bounded, literal(89.0)])
+            scaled = self.emit_math('multiply', [bounded, '0f3fb8aa3b'])
+            exponent = self.reg('f')
+            self.put(f'cvt.rni.f32.f32 {exponent}, {scaled};')
+            # ln(2) = hi + lo. hi = 22713/32768 makes n*hi exact for
+            # n in [-150,128]; separate subtraction retains the small residual.
+            high = self.emit_math('multiply', [exponent, '0f3f317200'])
+            residual = self.emit_math('subtract', [bounded, high])
+            low = self.emit_math('multiply', [exponent, '0f35bfbe8e'])
+            residual = self.emit_math('subtract', [residual, low])
+            fraction = self.emit_math('multiply', [residual, '0f3fb8aa3b'])
+            partial = self.reg('f')
+            self.put(f'ex2.approx.f32 {partial}, {fraction};')
+            # Two normal scales avoid premature overflow/underflow in 2**n.
+            # Integer ex2 results are still approximate under the PTX contract.
+            half = self.emit_math('multiply', [exponent, literal(0.5)])
+            self.put(f'cvt.rzi.f32.f32 {half}, {half};')
+            remainder = self.emit_math('subtract', [exponent, half])
+            first, second = self.reg('f'), self.reg('f')
+            self.put(f'ex2.approx.f32 {first}, {half};')
+            self.put(f'ex2.approx.f32 {second}, {remainder};')
+            partial = self.emit_math('multiply', [partial, first])
+            self.emit_math('multiply', [partial, second], dst)
         elif operation == 'reciprocal':
             self.put(f'div.rn.f32 {dst}, 0f3f800000, {operands[0]};')
         elif operation == 'rsqrt':

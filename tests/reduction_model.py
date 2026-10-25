@@ -243,6 +243,11 @@ def run_reduction_ptx(ptx, launch, overrides=None):
             elif opcode in ('abs.f32', 'neg.f32'):
                 operation = np.abs if opcode == 'abs.f32' else np.negative
                 reg[args[0]] = operation(np.float32(value(tid, args[1])), dtype=np.float32)
+            elif opcode in ('cvt.rni.f32.f32', 'cvt.rzi.f32.f32'):
+                # Integral-valued f32 output, not an f32-to-integer conversion.
+                # Keep each instruction's f32 rounding distinct from later math.
+                operation = np.rint if opcode == 'cvt.rni.f32.f32' else np.trunc
+                reg[args[0]] = np.float32(operation(np.float32(value(tid, args[1]))))
             elif opcode == 'copysign.f32':
                 # PTX takes the sign source before the magnitude source.
                 reg[args[0]] = np.copysign(np.float32(value(tid, args[2])),

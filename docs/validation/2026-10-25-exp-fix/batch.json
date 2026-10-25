@@ -1,0 +1,249 @@
+[
+  {
+    "case": "s03_exp_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s03_exp_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s03_exp_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s03_exp_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s04_tanh_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s04_tanh_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s04_tanh_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s04_tanh_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s05_sigmoid_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s05_sigmoid_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s05_sigmoid_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s05_sigmoid_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s06_silu_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s06_silu_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s06_silu_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s06_silu_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s07_erf_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s07_erf_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s07_erf_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s07_erf_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s08_gelu_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s08_gelu_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s08_gelu_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s08_gelu_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s09_gelu_tanh_193",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s09_gelu_tanh_193",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s09_gelu_tanh_193/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s09_gelu_tanh_193"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s13_guarded_attention_5x11x7x6",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s13_guarded_attention_5x11x7x6",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s13_guarded_attention_5x11x7x6/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s13_guarded_attention_5x11x7x6"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s14_generated_greedy_attention_5x9x7x11",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s14_generated_greedy_attention_5x9x7x11",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/validation-0e16a83/reproduced-fixtures/s14_generated_greedy_attention_5x9x7x11/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s14_generated_greedy_attention_5x9x7x11"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "f02_row_softmax",
+    "category": "official",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/.reference/problems/f02_row_softmax",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/f02_row_softmax-manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/official/f02_row_softmax"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "a01_attention",
+    "category": "official",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/.reference/problems/a01_attention",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/a01_attention-manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/official/a01_attention"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "a02_attention_128",
+    "category": "official",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/mygit/emmy-compiler/.reference/problems/a02_attention_128",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/a02_attention_128-manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/official/a02_attention_128"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  },
+  {
+    "case": "s16_exp_boundary_finite",
+    "category": "synthetic",
+    "command": [
+      "/Users/frank/mygit/emmy-compiler/.venv-runner/bin/python",
+      "-B",
+      "/Users/frank/mygit/emmy-compiler/tools/run_synthetic.py",
+      "/Users/frank/Documents/Codex/2026-10-24/task/emmy-exp-tests/boundary-case",
+      "--project",
+      "/Users/frank/mygit/emmy-compiler",
+      "--manifest",
+      "/Users/frank/Documents/Codex/2026-10-24/task/emmy-exp-tests/boundary-case/manifest.json",
+      "--attempt",
+      "/Users/frank/mygit/emmy-compiler/build/exp-fix/synthetic/s16_exp_boundary_finite"
+    ],
+    "wrapper_exit_code": 0,
+    "passed": true,
+    "uncertain_request": false
+  }
+]

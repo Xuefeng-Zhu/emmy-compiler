@@ -1,0 +1,2 @@
+[k_matmul_softmax_reduce_eda2a3] 77 registers
+[k_matmul_softmax_reduce_eda2a3] PASS  result: max abs err 1.788e-07  (32.928 us)
