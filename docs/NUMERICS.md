@@ -59,6 +59,7 @@ infinities and the smallest float32 subnormal. A separate-rounding witness uses
 instruction sequence and CPU model are checked against the separate result.
 
 The CPU model validates operand/address flow and float32 expectations. It does
-not assemble PTX, emulate all NVIDIA behavior or prove optimizer behavior. These
-new operations and exceptional-value cases still need separately authorized GPU
-validation. Prior p00/p01 GPU receipts cover their original finite arrays only.
+not assemble PTX, emulate all NVIDIA behavior or prove optimizer behavior. The
+p00–p03 GPU receipts cover only the supplied finite public arrays. Exceptional
+values, NaN policy and hidden variants remain outside that GPU evidence; the
+upstream semantic conflict above is not resolved by those passing runs.

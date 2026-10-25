@@ -1,0 +1,18 @@
+{
+  "compiler_commit": "519fc60fb6eac9ba421a8c726ba27f6f17964b82",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/runner-pointwise-regression.txt 2>&1",
+  "local_tests": 67,
+  "elapsed_seconds": 6.005,
+  "exit_code": 0,
+  "mocked_transport_test_methods": 3,
+  "mocked_transport_scenarios": 7,
+  "actual_remote_cases": [
+    "p02_scale_shift",
+    "p03_relu_mul"
+  ],
+  "remote_attempts_per_case": 1,
+  "compiler_fixes_required": false,
+  "existing_private_repo_push_verified_sha": "519fc60fb6eac9ba421a8c726ba27f6f17964b82",
+  "new_runner_results_pushed": false,
+  "limits": "Finite public fixtures only; exceptional-input NaN contract unresolved; single launches are not benchmarks."
+}

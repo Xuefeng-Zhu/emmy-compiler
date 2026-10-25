@@ -23,9 +23,9 @@ The required CLI is `python compile.py path/to/kernel.ir.json > out.ptx` with th
 program at the repository root. Use Emmy 0.3.11 to load IR and implement the
 translation ourselves. The metadata defines argument order, launch geometry and
 tolerance. Official success requires ptxas acceptance and correct GPU outputs.
-The official runner and submit.py exist. Only p00/p01 were subsequently executed
-with separate user approval; their receipts are in RUNNER_RESULTS.md. The p02/p03
-extension has local validation only.
+The official runner and submit.py exist. All four public pointwise cases were subsequently executed
+in two separately approved sessions; their receipts are in RUNNER_RESULTS.md.
+No reductions or hidden variants have been run.
 
 The stated deadline is October 27, 2026 at 23:59 AoE. Submission requires a public
 source repository and a 3–5 minute explanation video in the participant's own
@@ -33,9 +33,8 @@ voice. AI assistance is allowed, but the participant must understand the compile
 The website permits several public Git hosts; the repository README asks for
 GitHub. Resolve that distinction before any later submission.
 
-The current extension authorizes local implementation and tests only. Earlier
-private repository creation/push and p00/p01 runner approvals are completed. They
-do not authorize new uploads or runner cases. Registration, agreements,
+The private repository pushes and separately approved p00/p01 and p02/p03 runner
+sessions are completed. They do not authorize new uploads or runner cases. Registration, agreements,
 credentials, public repository publication, paid resources and submission remain
 separate user decisions. The separate
 Open Kernel Challenge workspace, accounts, sessions and quotas are outside this

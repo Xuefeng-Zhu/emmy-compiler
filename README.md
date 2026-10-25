@@ -6,9 +6,10 @@ The current slice handles one-dimensional, statically sized f32 addition,
 multiplication and ReLU, with runtime constant buffers. All four official
 pointwise cases (`p00` through `p03`) compile locally.
 
-**Status: 64 local tests pass; p00/p01 have prior GPU PASS evidence.**
-p02/p03 match their official expected arrays in a CPU model; they have not yet
-been assembled or executed on a GPU. The model is a test helper, not a PTX backend.
+**Status: all four public pointwise cases passed official PTX assembly, GPU
+execution and expected-array comparison; 67 local tests pass.**
+The GPU runs cover the supplied finite inputs. Exceptional-input behavior and
+hidden variants are not validated; the CPU model remains a test helper.
 This is an initial working slice, not a completed competition MVP. See
 [build status](docs/STATUS.md) and [architecture and supported scope](docs/ARCHITECTURE.md).
 
@@ -84,12 +85,12 @@ JSON upload service or a security sandbox.
 - `docs/CHALLENGE.md`: official boundaries and later submission prerequisites.
 - `THIRD_PARTY_NOTICES.md`: source provenance and unresolved licensing questions.
 
-The two approved official runner tests passed on an RTX 5090 with zero maximum
-absolute error. See [runner results](docs/RUNNER_RESULTS.md) for exact commands,
-stdout, receipts and limits. The newly generated p00/p01 PTX has the same hashes
-as those receipts; no new GPU requests were made for this extension. Next step:
-separately authorize p02/p03 assembly and GPU comparison using the minimal payload
-listed in [build status](docs/STATUS.md), then begin reductions. The source mirror is the private repository
-[Xuefeng-Zhu/emmy-compiler](https://github.com/Xuefeng-Zhu/emmy-compiler).
-The p02/p03 extension and recent validation commits remain local and unpushed.
+All four authorized public pointwise cases passed on an RTX 5090 with zero
+maximum absolute error. See [runner results](docs/RUNNER_RESULTS.md) for exact
+commands, stdout, receipts and limits. Each case ran once; the timings are not
+performance benchmarks. The [private source repository](https://github.com/Xuefeng-Zhu/emmy-compiler)
+was updated through commit `519fc60`. The subsequent p02/p03 runner results and
+wrapper adaptation remain local and unpushed.
+
+Next implementation, if requested: the first general reductions for r01/r02.
 Reduction coverage, hidden-set validation and competition submission remain pending.

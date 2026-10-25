@@ -3,8 +3,13 @@
 Checkpoint: October 25, 2026 (UTC).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
-**64 local tests pass. All four public pointwise cases compile and match official
-expected arrays in our CPU model. GPU PASS evidence remains limited to p00/p01.**
+**All four public pointwise cases passed PTX assembly, RTX 5090 execution and
+official expected-array comparison. 67 local tests pass.**
+
+p02/p03 each passed once with max absolute error 0 and client/wrapper exit 0.
+Their single-launch timings were 14.976/15.328 microseconds, not benchmarks. No
+compiler fixes or retries were needed. These results apply to the supplied finite
+arrays; exceptional-input semantics and hidden variants remain unverified.
 
 ## Delivered in this local extension
 
@@ -25,14 +30,28 @@ expected arrays in our CPU model. GPU PASS evidence remains limited to p00/p01.*
 | --- | --- | --- | --- |
 | p00_scalar_add | Exit 0 | Passed | Prior PASS, RTX 5090 |
 | p01_vector_add | Exit 0 | Passed | Prior PASS, RTX 5090 |
-| p02_scale_shift | Exit 0 | Passed, rtol/atol 1e-6 | Not run |
-| p03_relu_mul | Exit 0 | Passed, rtol/atol 0 | Not run |
+| p02_scale_shift | Exit 0 | Passed, rtol/atol 1e-6 | PASS, RTX 5090 |
+| p03_relu_mul | Exit 0 | Passed, rtol/atol 0 | PASS, RTX 5090 |
 | r01–r04 reductions | Unsupported | Not run | Not run |
 
 The official basic scope is eight problems: four pointwise plus four reductions.
 This is not yet the competition MVP. There are 15 public problems overall.
 
-Latest verification correction, executed from the project directory:
+Latest runner validation used the two serial commands in RUNNER_RESULTS.md.
+Final local regression:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 .venv312/bin/python -B -m unittest discover -s tests -v > build/runner-pointwise-regression.txt 2>&1
+```
+
+Result: **67 tests in 6.005 seconds, OK; exit 0**. This includes three mocked
+transport tests (seven scenarios) that validate the exact public payloads, output
+names/completeness and rejection of NaN results without contacting the runner.
+[Full log](validation/2026-10-25/runner-regression.txt) and
+[result record](validation/2026-10-25/runner-regression.json).
+The real p02/p03 receipts were verified intact after the mocked tests.
+
+Prior comparison-policy correction checkpoint, executed from the project directory:
 
 ```sh
 .venv312/bin/python -B -m unittest discover -s tests -v > build/comparison-policy-tests.txt 2>&1
@@ -96,27 +115,31 @@ also rejects NaN/NaN. Hidden exceptional-input requirements remain unresolved;
 this is not a claim of universal f32 support. Deserialization accepts trusted
 IR only.
 
-Next implementation after pointwise GPU validation: a general first reduction,
+Next implementation, if requested: a general first reduction for r01/r02,
 including scalar result buffers, reduction loops/accumulators and the required
 shuffle/shared-memory synchronization. No reduction work was started here.
 
-## Minimal next GPU validation payload (not sent)
+## Completed p02/p03 GPU payload
 
-A separate authorization would cover exactly these generated PTX strings and
-public launch/input descriptions, one execution each (`warmup=0`, `iters=1`):
+After separate explicit approval, exactly these generated PTX strings and public
+launch/input descriptions were sent, one execution each (`warmup=0`, `iters=1`):
 
 | Case | Entry | Grid / block | Ordered f32 arguments |
 | --- | --- | --- | --- |
 | p02 | k_add_pointwise | (4,1,1) / (256,1,1) | mul_c1[1] data=[2.0], add_c1[1] data=[1.0], x[4096] seed=0, add[4096] output |
 | p03 | k_mul_pointwise | (2,1,1) / (256,1,1) | x[2048] seed=0, y[2048] seed=1, mul[2048] output |
 
-Both require zero shared memory and no output zeroing. PTX hashes are recorded in
-local-results.json. The official HTTP runner would assemble and execute PTX;
-expected.npz comparison stays local. No Python source, repository content,
-credentials or private input data are needed. The existing runner wrapper still
-allows only p00/p01; it has not been expanded or invoked by this change.
+Both used zero shared memory and no output zeroing. The PTX hashes match the
+prior local-results.json and the new per-case receipts. The official HTTP service
+assembled and executed PTX; expected.npz comparison happened locally with the
+original tolerances and equal_nan=False. No Python source, repository content,
+credentials or private input data was sent to the runner. The constrained wrapper
+now recognizes p00–p03; that does not authorize further runs.
 
-All new commits remain local. No publication, competition registration, paid
-resources, other project's GPU quota or submission actions occurred. Before a
+The four previously authorized commits through 519fc60 were pushed to the existing
+private repository; remote main SHA and privacy were verified. The subsequent
+p02/p03 runner results and wrapper/test changes remain local and unpushed. No
+public publication, competition registration, paid resources, other project's GPU
+quota or submission actions occurred. Before a
 public entry, original-code licensing and competition IP terms need review; the
 participant must supply the required 3–5 minute explanation in their own voice.

@@ -25,7 +25,7 @@ def main():
     import requests
 
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('problem', choices=['p00_scalar_add', 'p01_vector_add'])
+    ap.add_argument('problem', choices=['p00_scalar_add', 'p01_vector_add', 'p02_scale_shift', 'p03_relu_mul'])
     problem = ap.parse_args().problem
     client = ROOT / '.reference/submit.py'
     if hashlib.sha256(client.read_bytes()).hexdigest() != CLIENT_SHA256:
@@ -38,21 +38,28 @@ def main():
                 raise RuntimeError('Official fixture hash mismatch')
     meta = json.loads((folder / 'meta.json').read_text())
     kernel, = meta['kernels']
+    output_desc, = [arg for arg in kernel['args'] if arg.get('output')]
+    output_name = output_desc['name']
     with np.load(folder / 'expected.npz', allow_pickle=False) as expected:
-        if expected.files != ['add'] or expected['add'].shape != tuple(kernel['args'][-1]['shape']):
+        if (expected.files != [output_name] or expected[output_name].shape != tuple(output_desc['shape'])
+                or expected[output_name].dtype != np.float32):
             raise RuntimeError('Unexpected expected-output contract')
+        reference = expected[output_name].copy()
     generated = subprocess.run([sys.executable, str(ROOT / 'compile.py'), str(folder / (kernel['entry'] + '.ir.json'))], capture_output=True, text=True, check=True)
     ptx = generated.stdout
     ptx.encode('ascii')
     report = {'problem': problem, 'started_at_utc': datetime.now(timezone.utc).isoformat(),
-              'client_sha256': CLIENT_SHA256, 'ptx_sha256': hashlib.sha256(ptx.encode()).hexdigest(), 'requests': []}
+              'client_sha256': CLIENT_SHA256, 'ptx_sha256': hashlib.sha256(ptx.encode()).hexdigest(),
+              'local_generation_exit_code': generated.returncode, 'expected_output': output_name,
+              'comparison': {'rtol': meta['rtol'], 'atol': meta['atol'], 'equal_nan': False}, 'requests': []}
     session = requests.Session()
     session.trust_env = False  # No inherited proxy, .netrc credentials or environment auth.
     compiled = None
+    comparison_ok = False
     counts = {'/compile': 0, '/run': 0}
 
     def approved_post(url, *, json, timeout):
-        nonlocal compiled
+        nonlocal compiled, comparison_ok
         if url not in (SERVER + '/compile', SERVER + '/run'):
             raise RuntimeError('Unexpected outbound destination')
         path = url.removeprefix(SERVER)
@@ -84,13 +91,18 @@ def main():
             compiled = data['cubin_id']
             receipt.update(cubin_id=compiled, entry_points=data['entry_points'], registers=data.get('registers'))
         if path == '/run' and data.get('ok'):
-            output = data.get('outputs', {}).get('add')
+            output = data.get('outputs', {}).get(output_name)
             if (not output or output.get('truncated') or output.get('dtype') != 'f32'
-                    or output.get('shape') != kernel['args'][-1]['shape']
-                    or len(output.get('values', [])) != kernel['args'][-1]['shape'][0]):
+                    or output.get('shape') != output_desc['shape']
+                    or len(output.get('values', [])) != output_desc['shape'][0]):
                 raise RuntimeError('Missing, truncated or malformed expected output')
+            actual = np.asarray(output['values'], dtype=np.float32).reshape(reference.shape)
+            comparison_ok = bool(np.allclose(actual, reference, rtol=meta['rtol'], atol=meta['atol'], equal_nan=False))
+            with np.errstate(invalid='ignore', over='ignore'):
+                error = float(np.max(np.abs(actual - reference)))
             receipt.update(median_us=data.get('median_us'), iters=data.get('iters'),
-                           output_shape=output['shape'], output_count=len(output['values']))
+                           output_name=output_name, output_shape=output['shape'], output_count=len(output['values']),
+                           comparison_passed=comparison_ok, max_abs_error=error if np.isfinite(error) else None)
         return response
 
     # Only the transport is constrained. Official compilation/comparison logic is unchanged.
@@ -112,7 +124,7 @@ def main():
     finally:
         requests.post, sys.argv = original_post, original_argv
         session.close()
-    passed = code == 0 and 'PASS  add:' in stdout.getvalue() and counts['/run'] > 0
+    passed = code == 0 and f'PASS  {output_name}:' in stdout.getvalue() and comparison_ok and counts['/run'] > 0
     report.update(exit_code=code, passed=passed, finished_at_utc=datetime.now(timezone.utc).isoformat())
     dest = ROOT / 'build/runner'
     dest.mkdir(parents=True, exist_ok=True)

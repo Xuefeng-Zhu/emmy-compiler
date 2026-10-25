@@ -1,0 +1,48 @@
+{
+  "problem": "p02_scale_shift",
+  "started_at_utc": "2026-10-25T05:12:15.315022+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "82c98002b04cde2dcfe033e36a4f73d3b6b3688c30d429768c5638bec2e959a4",
+  "local_generation_exit_code": 0,
+  "expected_output": "add",
+  "comparison": {
+    "rtol": 1e-06,
+    "atol": 1e-06,
+    "equal_nan": false
+  },
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "cubin_id": "d9819e4afad00d6b70b67b77f9d79f2fe06bf2cee64bd0e83341a07ecc81e4ff",
+      "entry_points": [
+        "k_add_pointwise"
+      ],
+      "registers": {
+        "k_add_pointwise": 21
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 14.976,
+      "iters": 1,
+      "output_name": "add",
+      "output_shape": [
+        4096
+      ],
+      "output_count": 4096,
+      "comparison_passed": true,
+      "max_abs_error": 0.0
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T05:12:16.422140+00:00"
+}

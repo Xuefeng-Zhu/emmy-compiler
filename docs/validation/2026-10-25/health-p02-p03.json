@@ -1,0 +1,13 @@
+{
+  "checked_at_utc": "2026-10-25T05:09:35.345887+00:00",
+  "url": "http://runner.riftstack.ai:48701/health",
+  "http_status": 200,
+  "response": {
+    "ok": true,
+    "arch_ok": true,
+    "default_arch": "sm_120",
+    "can_compile": true,
+    "can_run": true,
+    "gpu": "NVIDIA GeForce RTX 5090 (compute capability 12.0, sm_120)"
+  }
+}

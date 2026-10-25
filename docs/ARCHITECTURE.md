@@ -43,7 +43,9 @@ Emission finishes in memory before stdout is written, so validation errors canno
 leave partial PTX. Official deserialization uses Python expression evaluation;
 only trusted official or self-generated IR is supported, not hostile uploads.
 
-Validation levels remain distinct: 64 local tests (including a limited CPU PTX
-model), prior NVIDIA assembly and GPU output comparison for p00/p01, and pending
-assembly/GPU checks for p02/p03. CPU-model agreement cannot establish PTX legality
-or NVIDIA hardware behavior. See STATUS.md and RUNNER_RESULTS.md for evidence.
+Validation levels remain distinct: 67 local tests (including a limited CPU PTX
+model and mocked transport tests), and NVIDIA assembly/GPU output comparison for
+all four public pointwise cases. GPU receipts cover their supplied finite arrays;
+shape variants and exceptional values have local checks only. CPU-model agreement
+cannot establish additional NVIDIA hardware behavior. See STATUS.md and
+RUNNER_RESULTS.md for evidence.
