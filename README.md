@@ -6,7 +6,7 @@ The current slice handles one-dimensional, statically sized f32 addition kernels
 including the unrolled two-element cells in official `p00_scalar_add` and
 `p01_vector_add`.
 
-**Status: locally tested parser and PTX emitter; no PTX assembly or GPU execution yet.**
+**Status: official p00/p01 passed PTX assembly, GPU execution and output comparison.**
 This is an initial working slice, not a completed competition MVP. See
 [build status](docs/STATUS.md) and [architecture and supported scope](docs/ARCHITECTURE.md).
 
@@ -70,11 +70,14 @@ JSON upload service or a security sandbox.
 - `emmy_ptx/ptx.py`: typed statement walk, virtual registers and direct PTX emission.
 - `tests/test_compiler.py`: deterministic local tests; no GPU or runner calls.
 - `tools/fetch_reference.py`: immutable public reference downloads.
+- `tools/run_official.py`: bounded wrapper around the reviewed official runner client;
+  requires separate authorization before uploading PTX or running GPU tests.
+- `requirements-runner.lock`: optional isolated runner-client environment.
 - `docs/CHALLENGE.md`: official boundaries and later submission prerequisites.
 - `THIRD_PARTY_NOTICES.md`: source provenance and unresolved licensing questions.
 
-Next step: review the generated PTX and, after authorization for runner use,
-assemble and execute p00/p01 on the official runner. Then extend pointwise
-coverage before tackling reductions. The source mirror is the private repository
+The two approved official runner tests passed on an RTX 5090 with zero maximum
+absolute error. See [runner results](docs/RUNNER_RESULTS.md) for exact commands,
+stdout, receipts and limits. Next step: extend pointwise coverage before reductions. The source mirror is the private repository
 [Xuefeng-Zhu/emmy-compiler](https://github.com/Xuefeng-Zhu/emmy-compiler).
-Official GPU validation and competition submission remain pending.
+Other official cases, hidden-set validation and competition submission remain pending.

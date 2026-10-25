@@ -10,8 +10,8 @@ Local `.reference/` files are unmodified downloads from
 https://github.com/cloudrift-ai/emmy-hackathon-2026 at commit
 `ec8cde1943f88efea3827a95bda6085553d2d407`. Their exact paths and SHA-256 hashes are
 in `docs/reference-manifest.json`. These include official JSON/text/CUDA examples
-and documentation used for development and comparison. No upstream script is
-executed. No reference implementation code is used as a lowering backend.
+and documentation used for development and comparison. The reviewed, hash-pinned upstream `submit.py` client was executed only for the
+two explicitly authorized runner cases; upstream generation scripts were not run. No reference implementation code is used as a lowering backend.
 
 No LICENSE or NOTICE file was present in that challenge repository tree when
 checked. Do not assume Emmy's Apache-2.0 license automatically covers the challenge

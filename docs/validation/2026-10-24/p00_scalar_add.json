@@ -1,0 +1,38 @@
+{
+  "problem": "p00_scalar_add",
+  "started_at_utc": "2026-10-25T04:31:36.802507+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "8fcbe0d9cfd89cc3c97800d474c54302db5cf888d64b7a29b2ab97c9d4d3e671",
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "cubin_id": "e2ad78ba42aecff57b9aad67f02ad2cb8e6387ced709c9519b4401fdc4bb1eaf",
+      "entry_points": [
+        "k_add_pointwise"
+      ],
+      "registers": {
+        "k_add_pointwise": 18
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 23.584,
+      "iters": 1,
+      "output_shape": [
+        128
+      ],
+      "output_count": 128
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T04:31:37.666227+00:00"
+}

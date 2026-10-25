@@ -53,6 +53,18 @@
     {
       "path": "problems/p01_vector_add/meta.json",
       "sha256": "4607a6a14553ec256b2073ff8fef18a850e315033f4fdace21f26fdcc2a867c6"
+    },
+    {
+      "path": "submit.py",
+      "sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf"
+    },
+    {
+      "path": "problems/p00_scalar_add/expected.npz",
+      "sha256": "69e4a749183c5402f03c28a957cb1f523186d16f9b9974c75cd0ebbbfd925478"
+    },
+    {
+      "path": "problems/p01_vector_add/expected.npz",
+      "sha256": "1a72f87aa3afd4e84746d2c0bfcfde9d024f573ce863322f72d2c6b3bb133086"
     }
   ]
 }

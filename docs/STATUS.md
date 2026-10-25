@@ -1,5 +1,12 @@
 # Build status
 
+Latest: **p00 and p01 passed official PTX assembly, RTX 5090 execution and exact
+output comparison** on October 24, 2026 (America/Los_Angeles). See
+[runner results](RUNNER_RESULTS.md). Both cases required one attempt; no compiler
+fixes were needed. The 39 local tests passed again in 0.611 seconds.
+
+The initial local-only checkpoint below is retained as historical context.
+
 Checkpoint: October 24, 2026 (America/Los_Angeles).
 Project: `/Users/frank/mygit/emmy-compiler`.
 
@@ -33,10 +40,10 @@ index and bounds guard, loads/adds/stores, CLI arity, missing/malformed files,
 unsupported operations/types, invalid SSA, address range, zero extent, overflowing
 index arithmetic, overlapping/incomplete writes and clean failure output.
 
-All tests above are local CPU/parser/text checks. **No PTX assembly, GPU numerical
-execution, official runner request or official problem pass is claimed.**
-The installed Mac environment has no ptxas or NVIDIA GPU. No official upstream
-repository script was executed.
+The tests above describe the initial local CPU/parser/text checks. Subsequent
+explicitly authorized runner validation passed p00/p01, as recorded separately.
+The Mac still has no ptxas or NVIDIA GPU; assembly and execution ran on the official
+service through its reviewed client in an isolated `.venv-runner` environment.
 
 ## Environment issue resolved locally
 
@@ -49,9 +56,8 @@ working `.venv312` remains.
 
 ## Remaining work
 
-1. After user authorization, review the official runner client and use its
-   ptxas/GPU feedback for p00 and p01. Resolve any assembly/ABI/numerical failures
-   before extending the supported subset.
+1. Completed: reviewed official client and verified p00/p01 through assembly,
+   hardware execution and expected-output comparison. No failures or retries.
 2. Add constants as buffer arguments and further pointwise arithmetic for p02/p03.
 3. Add reduction statements, shuffle/shared-memory synchronization and coverage
    of all four reduction tasks. The official MVP totals eight tasks.
@@ -60,5 +66,6 @@ working `.venv312` remains.
    license, publish only authorized material and prepare the participant's own
    3–5 minute voice explanation.
 
-The current bounded setup is complete. This checkpoint does not authorize an
-ongoing full-competition build, remote GPU use, publication or submission.
+The bounded setup and two authorized runner tests are complete. This does not
+authorize further GPU jobs, a full-competition build, publication or submission.
+The runner results and helper are committed locally only; no new push was made.

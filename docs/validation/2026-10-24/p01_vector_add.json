@@ -1,0 +1,38 @@
+{
+  "problem": "p01_vector_add",
+  "started_at_utc": "2026-10-25T04:31:53.961715+00:00",
+  "client_sha256": "b3c2fac2e05e33a8d21a24c4ba7d2dfc23c9b71911646437910e0d6fd0e66dbf",
+  "ptx_sha256": "010390cc4e3b027f881cd88afd58fccac6aa3d4377d7d603b809a021ca5059f5",
+  "requests": [
+    {
+      "path": "/compile",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "cubin_id": "7f52103e06bd4c0b4b566bc3a23be206fd623d1736e81d7385e5349a55851d94",
+      "entry_points": [
+        "k_add_pointwise"
+      ],
+      "registers": {
+        "k_add_pointwise": 18
+      }
+    },
+    {
+      "path": "/run",
+      "state": "response_received",
+      "http_status": 200,
+      "ok": true,
+      "stage": null,
+      "median_us": 20.352,
+      "iters": 1,
+      "output_shape": [
+        1024
+      ],
+      "output_count": 1024
+    }
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "finished_at_utc": "2026-10-25T04:31:54.891985+00:00"
+}

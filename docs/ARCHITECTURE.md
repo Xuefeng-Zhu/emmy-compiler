@@ -36,6 +36,7 @@ addition uses explicit `add.rn.f32`. Output targets PTX 8.0, sm_89, 64-bit addre
 Emission completes in memory before stdout is written, so rejected input cannot
 leave a plausible partial kernel.
 
-Validation has three distinct levels: local typed-input/structure tests (done),
-NVIDIA PTX assembly (pending), and execution with official tolerances and launch
-metadata (pending). Text tests cannot establish GPU correctness.
+Validation has three distinct levels: local typed-input/structure tests (39 passing),
+NVIDIA PTX assembly (p00/p01 passed), and execution with official tolerances and launch
+metadata (p00/p01 passed on the official RTX 5090). Other cases remain unvalidated.
+Text tests alone cannot establish GPU correctness; see RUNNER_RESULTS.md for receipts.
