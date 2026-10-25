@@ -152,7 +152,25 @@ class Emitter:
 
 
 def emit(kernel: Kernel) -> str:
-    if len(kernel.body) == 1 and isinstance(kernel.body[0], Tile) and kernel.body[0].block_threads is not None:
+    from emmy.compiler.ir.kernel.ir import Smem, WarpShuffle
+    from emmy.compiler.ir.stmt.blocks import StridedLoop
+
+    require(isinstance(kernel.body, (tuple, list)) and len(kernel.body) == 1
+            and isinstance(kernel.body[0], Tile), 'expected exactly one top-level Tile')
+    tile = kernel.body[0]
+    require(isinstance(tile.body, (tuple, list)), 'Tile body must be a sequence')
+    if any(isinstance(statement, Smem) for statement in tile.body) and not any(isinstance(statement, WarpShuffle) for statement in tile.body):
+        from .matmul import MatmulEmitter
+        return MatmulEmitter(kernel).run()
+    require(kernel.smem_bytes == 0 and not kernel.zero_outputs,
+            'this schedule does not support dynamic shared memory or output zeroing')
+    if tile.block_threads is not None and any(isinstance(statement, WarpShuffle) for statement in tile.body):
+        if tile.body and isinstance(tile.body[-1], StridedLoop):
+            from .cooperative import CooperativeEmitter
+            return CooperativeEmitter(kernel).run()
         from .reduction import ReductionEmitter
         return ReductionEmitter(kernel).run()
-    return Emitter(kernel).run()
+    if len(tile.axes) == 1 and tile.block_threads is None and all(isinstance(statement, (Load, Assign, Write)) for statement in tile.body):
+        return Emitter(kernel).run()
+    from .structured import StructuredEmitter
+    return StructuredEmitter(kernel).run()

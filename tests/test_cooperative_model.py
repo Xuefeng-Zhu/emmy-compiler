@@ -80,6 +80,17 @@ def divide_probe():
     ret;''', ('numerator', 'denominator', 'result'))
 
 
+def binary_launch(left, right):
+    left, right = np.asarray(left, dtype=np.float32), np.asarray(right, dtype=np.float32)
+    if left.shape != right.shape or left.ndim != 1:
+        raise AssertionError('probe operands must have matching one-dimensional shapes')
+    return {'grid': [left.size, 1, 1], 'block': [32, 1, 1], 'args': [
+        {'name': 'numerator', 'shape': [left.size], 'data': left.tolist()},
+        {'name': 'denominator', 'shape': [left.size], 'data': right.tolist()},
+        {'name': 'result', 'shape': [left.size], 'output': True},
+    ]}
+
+
 class CooperativeModelTests(unittest.TestCase):
     def test_ctas_have_private_shared_state_and_aggregate_counts(self):
         launch = shared_launch()
@@ -168,6 +179,76 @@ class CooperativeModelTests(unittest.TestCase):
         ]}
         with self.assertRaisesRegex(AssertionError, 'unsupported modeled instruction'):
             run_reduction_ptx(ptx, launch)
+
+    def test_subtract_and_multiply_use_f32_rounding(self):
+        cases = (
+            ('sub.rn.f32', [2**24, 1.5], [-1, 2], [0x4b800000, 0xbf000000]),
+            ('mul.rn.f32', [1.5, -(2**-126)], [2, 0.5], [0x40400000, 0x80400000]),
+        )
+        for opcode, left, right, expected in cases:
+            with self.subTest(opcode=opcode):
+                ptx = divide_probe().replace('div.rn.f32', opcode, 1)
+                actual = run_reduction_ptx(ptx, binary_launch(left, right)).outputs['result']
+                np.testing.assert_array_equal(actual.view(np.uint32), expected)
+
+    def test_nan_min_max_and_signed_zeros_follow_modeled_ptx_rules(self):
+        left = [float('nan'), 2, -0.0, 0.0, -0.0]
+        right = [1, float('nan'), 0.0, -0.0, -0.0]
+        for opcode, expected_zero_bits in (
+                ('max.NaN.f32', [0, 0, 0x80000000]),
+                ('min.NaN.f32', [0x80000000, 0x80000000, 0x80000000])):
+            with self.subTest(opcode=opcode):
+                ptx = divide_probe().replace('div.rn.f32', opcode, 1)
+                actual = run_reduction_ptx(ptx, binary_launch(left, right)).outputs['result']
+                self.assertTrue(np.all(np.isnan(actual[:2])))
+                np.testing.assert_array_equal(actual[2:].view(np.uint32), expected_zero_bits)
+
+    def test_sqrt_and_mathematical_exp2_model_on_exact_values(self):
+        cases = (
+            ('sqrt.rn.f32', [4, 1, 0, -0.0], [0x40000000, 0x3f800000, 0, 0x80000000]),
+            ('ex2.approx.f32', [-2, -1, 0, 1], [0x3e800000, 0x3f000000, 0x3f800000, 0x40000000]),
+        )
+        for opcode, values, expected in cases:
+            with self.subTest(opcode=opcode):
+                ptx = divide_probe().replace('div.rn.f32 %f2, %f0, %f1;', f'{opcode} %f2, %f0;', 1)
+                actual = run_reduction_ptx(ptx, binary_launch(values, [1] * 4)).outputs['result']
+                np.testing.assert_array_equal(actual.view(np.uint32), expected)
+
+    def test_signed_integer_division_remainder_and_wrapping(self):
+        cases = (
+            ('mov.s32 %r2, -7;\n    div.s32 %r3, %r2, 3;', 0xfffffffe),
+            ('mov.s32 %r2, -7;\n    rem.s32 %r3, %r2, 3;', 0xffffffff),
+            ('sub.s32 %r2, 0, 3;\n    mul.lo.s32 %r3, %r2, -5;', 15),
+            ('mov.s32 %r2, 2147483647;\n    add.s32 %r3, %r2, 1;', 0x80000000),
+            ('mov.u32 %r2, 4294967295;\n    div.u32 %r3, %r2, 2;', 0x7fffffff),
+            ('mov.u32 %r2, 5;\n    mad.lo.u32 %r3, %r2, 3, 2;', 17),
+        )
+        for instructions, expected_bits in cases:
+            with self.subTest(instructions=instructions):
+                ptx = divide_probe().replace('div.rn.f32 %f2, %f0, %f1;',
+                                             instructions + '\n    mov.b32 %f2, %r3;', 1)
+                actual = run_reduction_ptx(ptx, binary_launch([1], [1])).outputs['result']
+                self.assertEqual(int(actual.view(np.uint32)[0]), expected_bits)
+
+    def test_signed_comparisons_and_predicate_selection(self):
+        instructions = '''mov.s32 %r2, -1;
+    setp.lt.s32 %p0, %r2, 0;
+    and.pred %p0, %p0, 1;
+    not.pred %p0, %p0;
+    xor.pred %p0, %p0, 1;
+    selp.s32 %r3, -2, 1, %p0;
+    mov.b32 %f2, %r3;'''
+        ptx = divide_probe().replace('div.rn.f32 %f2, %f0, %f1;', instructions, 1)
+        actual = run_reduction_ptx(ptx, binary_launch([1], [1])).outputs['result']
+        self.assertEqual(int(actual.view(np.uint32)[0]), 0xfffffffe)
+
+    def test_undefined_integer_division_is_rejected(self):
+        for operation in ('div.s32 %r3, 1, 0;', 'rem.u32 %r3, 1, 0;',
+                          'div.s32 %r3, -2147483648, -1;'):
+            with self.subTest(operation=operation):
+                ptx = divide_probe().replace('div.rn.f32 %f2, %f0, %f1;', operation, 1)
+                with self.assertRaisesRegex(AssertionError, 'undefined modeled integer division'):
+                    run_reduction_ptx(ptx, binary_launch([1], [1]))
 
     def test_invalid_or_mismatched_launch_is_rejected(self):
         for grid, block in (([0, 1, 1], [32, 1, 1]),

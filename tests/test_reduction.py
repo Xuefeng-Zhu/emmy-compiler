@@ -353,7 +353,7 @@ class ReductionTests(unittest.TestCase):
             'incomplete warp': ('SUM_LOOP_DONE:\n', 'SUM_LOOP_DONE:\n' + early_return),
             'incomplete block': ('PARTIALS_DONE:\n', 'PARTIALS_DONE:\n' + early_return),
             'shared write race': (f'    @{pred} bra PARTIALS_DONE;\n', ''),
-            'unknown instruction': ('add.rn.f32', 'sub.rn.f32'),
+            'unknown instruction': ('add.rn.f32', 'unsupported.rn.f32'),
         }
         for case, (before, after) in mutations.items():
             with self.subTest(case=case):

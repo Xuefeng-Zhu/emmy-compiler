@@ -24,6 +24,8 @@ class Kernel:
     block: tuple[int, ...]
     scalar_outputs: frozenset[str] = frozenset()
     dimensions: dict[str, tuple[int, ...]] = field(default_factory=dict)
+    smem_bytes: int = 0
+    zero_outputs: frozenset[str] = frozenset()
 
 
 def require(condition: bool, message: str) -> None:
@@ -123,5 +125,10 @@ def load_kernel(path: Path) -> Kernel:
         geometry.append(tuple(dims))
     grid, block = geometry
     require(block[0] <= 1024 and grid[0] * block[0] < 2**31, 'unsupported launch size')
-    require(launch.get('smem_bytes', 0) == 0 and not launch.get('zero_outputs', []), 'dynamic shared memory and zero_outputs are unsupported')
-    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block, frozenset(scalar_outputs), dimensions)
+    smem_bytes = launch.get('smem_bytes', 0)
+    require(type(smem_bytes) is int and 0 <= smem_bytes <= 99 * 1024, 'meta.json: invalid dynamic shared-memory byte count')
+    zero_outputs = launch.get('zero_outputs', [])
+    require(isinstance(zero_outputs, list) and all(isinstance(name, str) for name in zero_outputs)
+            and len(zero_outputs) == len(set(zero_outputs)) and set(zero_outputs) <= outputs,
+            'meta.json: zero_outputs must name distinct output buffers')
+    return Kernel(op.name, op.body, tuple(order), shapes, inputs, outputs, grid, block, frozenset(scalar_outputs), dimensions, smem_bytes, frozenset(zero_outputs))

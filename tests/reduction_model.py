@@ -1,4 +1,4 @@
-"""Test-only cooperative model for the emitted sum/mean/row-reduction PTX subset.
+"""Test-only cooperative model for the emitted reduction/fused PTX subset.
 
 Threads run until a shuffle/barrier rendezvous, then resume together. Shared
 memory accesses are checked for initialization and cross-thread conflicts within
@@ -6,6 +6,10 @@ each block-barrier epoch. CTAs execute serially with fresh local state; global
 loads/stores are counted across the launch and conflicting output owners fail.
 This is deliberately not a PTX assembler, NVIDIA GPU emulator, proof of the
 hardware memory model, or performance model.
+
+The exp2 model computes mathematical float32 exp2. It does not reproduce the
+hardware-specific error of ex2.approx, so an exp-dependent CPU match is only a
+data-flow check and cannot establish GPU numerical accuracy.
 """
 from dataclasses import dataclass
 import re
@@ -86,6 +90,10 @@ def run_reduction_ptx(ptx, launch, overrides=None):
             raise AssertionError('malformed modeled memory operand')
         return sum(int(value(tid, part.strip())) for part in operand[1:-1].split('+'))
 
+    def integer(tid, operand, dtype):
+        bits = int(value(tid, operand)) & (0xffffffffffffffff if dtype == 'u64' else 0xffffffff)
+        return bits - 2**32 if dtype == 's32' and bits >= 2**31 else bits
+
     def locate(addr, spaces, arrays):
         for name, base in spaces.items():
             offset = addr - base
@@ -140,8 +148,8 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                 pcs[tid] = labels[args[0]]
             elif opcode == 'ld.param.u64':
                 reg[args[0]] = params[args[1][1:-1]]
-            elif opcode in ('mov.u32', 'mov.u64', 'cvta.to.global.u64'):
-                reg[args[0]] = int(value(tid, args[1]))
+            elif opcode in ('mov.u32', 'mov.s32', 'mov.u64', 'cvta.to.global.u64'):
+                reg[args[0]] = integer(tid, args[1], 'u64' if opcode.endswith('u64') else 'u32')
             elif opcode == 'mov.f32':
                 reg[args[0]] = np.float32(value(tid, args[1]))
             elif opcode == 'mov.b32':
@@ -152,16 +160,48 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                     reg[args[0]] = int(np.float32(source).view(np.uint32))
                 else:
                     reg[args[0]] = int(source) & 0xffffffff
-            elif opcode in ('add.u32', 'add.u64', 'mul.lo.u32', 'mul.wide.u32'):
-                a, b = int(value(tid, args[1])), int(value(tid, args[2]))
-                result = a + b if opcode.startswith('add') else a * b
-                reg[args[0]] = result & (0xffffffff if opcode in ('add.u32', 'mul.lo.u32') else 0xffffffffffffffff)
+            elif opcode == 'mul.wide.u32':
+                reg[args[0]] = integer(tid, args[1], 'u32') * integer(tid, args[2], 'u32')
+            elif re.fullmatch(r'(add|sub|mul\.lo|mad\.lo|div|rem|min|max)\.(u32|s32)', opcode) or opcode == 'add.u64':
+                operation, dtype = opcode.rsplit('.', 1)
+                a, b = integer(tid, args[1], dtype), integer(tid, args[2], dtype)
+                if operation in ('div', 'rem'):
+                    if b == 0 or (dtype == 's32' and a == -(2**31) and b == -1):
+                        raise AssertionError('undefined modeled integer division/remainder')
+                    quotient = abs(a) // abs(b)
+                    if (a < 0) != (b < 0):
+                        quotient = -quotient
+                    result = quotient if operation == 'div' else a - quotient * b
+                elif operation == 'add':
+                    result = a + b
+                elif operation == 'sub':
+                    result = a - b
+                elif operation in ('mul.lo', 'mad.lo'):
+                    result = a * b
+                    if operation == 'mad.lo':
+                        result += integer(tid, args[3], dtype)
+                else:
+                    result = min(a, b) if operation == 'min' else max(a, b)
+                reg[args[0]] = result & (0xffffffffffffffff if dtype == 'u64' else 0xffffffff)
             elif opcode in ('and.b32', 'shr.u32'):
                 a, b = int(value(tid, args[1])), int(value(tid, args[2]))
                 reg[args[0]] = (a & b) if opcode == 'and.b32' else (a & 0xffffffff) >> b
-            elif opcode in ('setp.ge.u32', 'setp.ne.u32', 'setp.eq.u32', 'setp.lt.u32'):
-                a, b = int(value(tid, args[1])), int(value(tid, args[2]))
-                reg[args[0]] = {'ge': a >= b, 'ne': a != b, 'eq': a == b, 'lt': a < b}[opcode.split('.')[1]]
+            elif re.fullmatch(r'setp\.(ge|ne|eq|lt|le|gt)\.(u32|s32)', opcode):
+                _, comparison, dtype = opcode.split('.')
+                a, b = integer(tid, args[1], dtype), integer(tid, args[2], dtype)
+                reg[args[0]] = {'ge': a >= b, 'ne': a != b, 'eq': a == b,
+                                'lt': a < b, 'le': a <= b, 'gt': a > b}[comparison]
+            elif opcode in ('and.pred', 'or.pred', 'xor.pred', 'not.pred'):
+                a = bool(value(tid, args[1]))
+                if opcode == 'not.pred':
+                    reg[args[0]] = not a
+                else:
+                    b = bool(value(tid, args[2]))
+                    reg[args[0]] = {'and.pred': a and b, 'or.pred': a or b, 'xor.pred': a != b}[opcode]
+            elif opcode in ('selp.s32', 'selp.u32', 'selp.f32'):
+                selected = args[1] if bool(value(tid, args[3])) else args[2]
+                reg[args[0]] = (np.float32(value(tid, selected)) if opcode == 'selp.f32'
+                                else integer(tid, selected, 'u32'))
             elif opcode == 'ld.global.f32':
                 name, offset = locate(address(tid, args[1]), bases, buffers)
                 if name not in load_counts:
@@ -187,9 +227,24 @@ def run_reduction_ptx(ptx, launch, overrides=None):
                     shared[name][offset] = np.float32(value(tid, args[1]))
                 else:
                     reg[args[0]] = shared[name][offset]
-            elif opcode in ('add.rn.f32', 'div.rn.f32'):
-                operation = np.add if opcode == 'add.rn.f32' else np.divide
+            elif opcode in ('add.rn.f32', 'sub.rn.f32', 'mul.rn.f32', 'div.rn.f32'):
+                operation = {'add.rn.f32': np.add, 'sub.rn.f32': np.subtract,
+                             'mul.rn.f32': np.multiply, 'div.rn.f32': np.divide}[opcode]
                 reg[args[0]] = operation(np.float32(value(tid, args[1])), np.float32(value(tid, args[2])), dtype=np.float32)
+            elif opcode in ('sqrt.rn.f32', 'ex2.approx.f32'):
+                operation = np.sqrt if opcode == 'sqrt.rn.f32' else np.exp2
+                reg[args[0]] = operation(np.float32(value(tid, args[1])), dtype=np.float32)
+            elif opcode in ('max.NaN.f32', 'min.NaN.f32'):
+                a, b = np.float32(value(tid, args[1])), np.float32(value(tid, args[2]))
+                if np.isnan(a) or np.isnan(b):
+                    result = np.float32(np.nan)
+                elif a == 0 and b == 0:
+                    # PTX treats -0 as smaller than +0 for min/max.
+                    negative = (np.signbit(a) and np.signbit(b)) if opcode.startswith('max') else (np.signbit(a) or np.signbit(b))
+                    result = np.float32(-0.0 if negative else 0.0)
+                else:
+                    result = np.maximum(a, b) if opcode.startswith('max') else np.minimum(a, b)
+                reg[args[0]] = result
             elif opcode == 'bar.sync':
                 if len(args) != 1:
                     raise AssertionError('only whole-CTA barriers modeled')
